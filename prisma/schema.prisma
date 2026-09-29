@@ -1,0 +1,275 @@
+// ===============================================
+// Prisma Schema - Whistleblowing Management System
+// ===============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ===============================================
+// ENUMS
+// ===============================================
+
+enum RoleName {
+  ADMIN
+  MANAGER
+  INVESTIGATOR
+  USER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum ComplaintStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  CONVERTED_TO_CASE
+}
+
+enum CaseStatus {
+  OPEN
+  INVESTIGATING
+  PENDING_REVIEW
+  CLOSED
+  ARCHIVED
+}
+
+enum CasePriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum InformationType {
+  ADDITIONAL_DETAILS
+  CLARIFICATION
+  SUPPORTING_INFO
+  CORRECTION
+}
+
+// ===============================================
+// MODELS
+// ===============================================
+
+// Role Model
+model Role {
+  role_id     Int      @id @default(autoincrement())
+  role_name   RoleName @unique
+  description String?  @db.Text
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  users User[]
+
+  @@map("roles")
+}
+
+// Department Model
+model Department {
+  department_id   Int      @id @default(autoincrement())
+  department_name String   @unique @db.VarChar(150)
+  description     String?  @db.Text
+  status          String   @default("active") @db.VarChar(20)
+  manager_id      Int?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  manager User?  @relation("DepartmentManager", fields: [manager_id], references: [user_id], onDelete: SetNull)
+  users   User[] @relation("UserDepartment")
+
+  @@index([manager_id])
+  @@map("departments")
+}
+
+// User Model
+model User {
+  user_id       Int        @id @default(autoincrement())
+  name          String     @db.VarChar(150)
+  email         String     @unique @db.VarChar(150)
+  password      String     @db.VarChar(255)
+  phone         String?    @db.VarChar(20)
+  status        UserStatus @default(ACTIVE)
+  role_id       Int
+  department_id Int?
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+
+  role       Role        @relation(fields: [role_id], references: [role_id], onDelete: Restrict)
+  department Department? @relation("UserDepartment", fields: [department_id], references: [department_id], onDelete: SetNull)
+
+  managedDepartments Department[]            @relation("DepartmentManager")
+  complaints         Complaint[]
+  additionalInfo     AdditionalInformation[]
+  caseStatusChanges  CaseStatusHistory[]
+  notifications      Notification[]
+  systemSettings     SystemSetting[]
+  assignedCases      Case[]                  @relation("AssignedInvestigator")
+
+  @@index([role_id])
+  @@index([department_id])
+  @@index([email])
+  @@map("users")
+}
+
+// Complaint Model
+model Complaint {
+  complaint_id Int             @id @default(autoincrement())
+  title        String          @db.VarChar(200)
+  description  String          @db.Text
+  category     String?         @db.VarChar(100)
+  status       ComplaintStatus @default(PENDING)
+  isAnonymous  Boolean         @default(false)
+  user_id      Int?
+  created_at   DateTime        @default(now())
+  updated_at   DateTime        @updatedAt
+
+  user           User?                   @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
+  additionalInfo AdditionalInformation[]
+  case           Case?
+
+  @@index([user_id])
+  @@index([status])
+  @@map("complaints")
+}
+
+// Additional Information Model
+model AdditionalInformation {
+  info_id         Int             @id @default(autoincrement())
+  title           String          @db.VarChar(200)
+  description     String          @db.Text
+  informationType InformationType @default(ADDITIONAL_DETAILS)
+  submitted_at    DateTime        @default(now())
+  submitted_by    Int
+  complaint_id    Int
+
+  submittedBy User      @relation(fields: [submitted_by], references: [user_id], onDelete: Restrict)
+  complaint   Complaint @relation(fields: [complaint_id], references: [complaint_id], onDelete: Cascade)
+
+  @@index([complaint_id])
+  @@index([submitted_by])
+  @@map("additional_information")
+}
+
+// Case Model
+model Case {
+  case_id                  Int          @id @default(autoincrement())
+  complaint_id             Int          @unique
+  status                   CaseStatus   @default(OPEN)
+  priority                 CasePriority @default(MEDIUM)
+  assigned_investigator_id Int?
+  created_at               DateTime     @default(now())
+  updated_at               DateTime     @updatedAt
+  closed_at                DateTime?
+
+  complaint            Complaint            @relation(fields: [complaint_id], references: [complaint_id], onDelete: Cascade)
+  assignedInvestigator User?                @relation("AssignedInvestigator", fields: [assigned_investigator_id], references: [user_id], onDelete: SetNull)
+  statusHistory        CaseStatusHistory[]
+  evidence             Evidence[]
+  investigationReport  InvestigationReport?
+  analyseData          AnalyseData[]
+
+  @@index([complaint_id])
+  @@index([assigned_investigator_id])
+  @@index([status])
+  @@map("cases")
+}
+
+// Case Status History Model
+model CaseStatusHistory {
+  history_id Int        @id @default(autoincrement())
+  status     CaseStatus
+  changed_at DateTime   @default(now())
+  changed_by Int
+  case_id    Int
+
+  changedBy User @relation(fields: [changed_by], references: [user_id], onDelete: Restrict)
+  case      Case @relation(fields: [case_id], references: [case_id], onDelete: Cascade)
+
+  @@index([case_id])
+  @@index([changed_by])
+  @@map("case_status_history")
+}
+
+// Evidence Model
+model Evidence {
+  evidence_id Int      @id @default(autoincrement())
+  file_name   String   @db.VarChar(255)
+  file_type   String   @db.VarChar(50)
+  description String?  @db.Text
+  uploaded_at DateTime @default(now())
+  case_id     Int
+
+  case Case @relation(fields: [case_id], references: [case_id], onDelete: Cascade)
+
+  @@index([case_id])
+  @@map("evidence")
+}
+
+// Investigation Report Model
+model InvestigationReport {
+  report_id      Int      @id @default(autoincrement())
+  findings       String   @db.Text
+  recommendation String   @db.Text
+  created_at     DateTime @default(now())
+  case_id        Int      @unique
+
+  case Case @relation(fields: [case_id], references: [case_id], onDelete: Cascade)
+
+  @@index([case_id])
+  @@map("investigation_reports")
+}
+
+// Analyse Data Model
+model AnalyseData {
+  analyze_id  Int      @id @default(autoincrement())
+  insights    String   @db.Text
+  analysed_at DateTime @default(now())
+  case_id     Int
+
+  case Case @relation(fields: [case_id], references: [case_id], onDelete: Cascade)
+
+  @@index([case_id])
+  @@map("analyse_data")
+}
+
+// Notification Model
+model Notification {
+  notification_id Int      @id @default(autoincrement())
+  message         String   @db.Text
+  is_read         Boolean  @default(false)
+  created_at      DateTime @default(now())
+  user_id         Int
+
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([is_read])
+  @@map("notifications")
+}
+
+// System Setting Model
+model SystemSetting {
+  setting_id  Int      @id @default(autoincrement())
+  key         String   @unique @db.VarChar(100)
+  value       String   @db.Text
+  description String?  @db.Text
+  user_id     Int?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  user User? @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
+
+  @@index([user_id])
+  @@map("system_settings")
+}
