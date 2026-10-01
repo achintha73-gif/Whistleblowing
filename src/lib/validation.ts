@@ -55,3 +55,33 @@ export const registerSchema = z.object({
 
 export type LoginSchema = z.infer<typeof loginSchema>;
 export type RegisterSchema = z.infer<typeof registerSchema>;
+
+// -------------------------------------------------------------
+// Password Reset Validation Schemas
+// -------------------------------------------------------------
+
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Invalid email format')
+    .toLowerCase()
+    .trim(),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z
+    .string()
+    .min(1, 'Token is required')
+    .regex(/^[a-f0-9]{64}$/, 'Invalid token format'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(100, 'Password is too long')
+    .regex(/[A-Z]/, 'Password must contain an uppercase letter')
+    .regex(/[a-z]/, 'Password must contain a lowercase letter')
+    .regex(/[0-9]/, 'Password must contain a number'),
+});
+
+export type ForgotPasswordSchema = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordSchema = z.infer<typeof resetPasswordSchema>;

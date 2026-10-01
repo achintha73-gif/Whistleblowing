@@ -73,3 +73,22 @@ export interface RegisterInput {
   roleName: RoleName;
   departmentId?: number;
 }
+
+// -------------------------------------------------------------
+// Password Reset
+// -------------------------------------------------------------
+
+export interface PasswordResetRequestResult {
+  success: true;
+  // For security: same message whether or not the email exists
+  message: string;
+}
+
+export interface PasswordResetResult {
+  success: true;
+}
+
+export interface PasswordResetError {
+  success: false;
+  error: string;
+}

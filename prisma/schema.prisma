@@ -108,13 +108,14 @@ model User {
   role       Role        @relation(fields: [role_id], references: [role_id], onDelete: Restrict)
   department Department? @relation("UserDepartment", fields: [department_id], references: [department_id], onDelete: SetNull)
 
-  managedDepartments Department[]            @relation("DepartmentManager")
-  complaints         Complaint[]
-  additionalInfo     AdditionalInformation[]
-  caseStatusChanges  CaseStatusHistory[]
-  notifications      Notification[]
-  systemSettings     SystemSetting[]
-  assignedCases      Case[]                  @relation("AssignedInvestigator")
+  managedDepartments  Department[]            @relation("DepartmentManager")
+  complaints          Complaint[]
+  additionalInfo      AdditionalInformation[]
+  caseStatusChanges   CaseStatusHistory[]
+  notifications       Notification[]
+  systemSettings      SystemSetting[]
+  assignedCases       Case[]                  @relation("AssignedInvestigator")
+  passwordResetTokens PasswordResetToken[]
 
   @@index([role_id])
   @@index([department_id])
@@ -272,4 +273,20 @@ model SystemSetting {
 
   @@index([user_id])
   @@map("system_settings")
+}
+
+// Password Reset Token Model
+model PasswordResetToken {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  token_hash String    @unique @db.VarChar(255)
+  expires_at DateTime
+  used_at    DateTime?
+  created_at DateTime  @default(now())
+
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([expires_at])
+  @@map("password_reset_tokens")
 }
