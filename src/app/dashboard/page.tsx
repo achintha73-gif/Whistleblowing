@@ -7,17 +7,16 @@ export default async function DashboardRootPage() {
     redirect('/login');
   }
 
-  return (
-    <div className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
-      <h1 className="text-2xl font-bold text-gray-900">
-        Welcome, {user.name}
-      </h1>
-      <p className="mt-2 text-sm text-gray-600">
-        You are signed in as <strong>{user.roleName}</strong>.
-      </p>
-      <p className="mt-4 text-sm text-gray-500">
-        Dashboard widgets will appear here soon.
-      </p>
-    </div>
-  );
+  // Send each role to its own dashboard
+  switch (user.roleName) {
+    case 'ADMIN':
+      redirect('/dashboard/admin');
+    case 'MANAGER':
+      redirect('/dashboard/manager');
+    case 'INVESTIGATOR':
+      redirect('/dashboard/investigator');
+    case 'USER':
+    default:
+      redirect('/dashboard/user');
+  }
 }
