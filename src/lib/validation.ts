@@ -1,4 +1,4 @@
-﻿import { z } from 'zod';
+import { z } from 'zod';
 
 // -------------------------------------------------------------
 // Auth Validation Schemas
@@ -49,10 +49,6 @@ export const registerSchema = z.object({
     .optional(),
 });
 
-// -------------------------------------------------------------
-// Inferred Types
-// -------------------------------------------------------------
-
 export type LoginSchema = z.infer<typeof loginSchema>;
 export type RegisterSchema = z.infer<typeof registerSchema>;
 
@@ -85,3 +81,29 @@ export const resetPasswordSchema = z.object({
 
 export type ForgotPasswordSchema = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordSchema = z.infer<typeof resetPasswordSchema>;
+
+// -------------------------------------------------------------
+// Complaint Validation Schemas
+// -------------------------------------------------------------
+
+export const createComplaintSchema = z.object({
+  title: z
+    .string()
+    .min(5, 'Title must be at least 5 characters')
+    .max(200, 'Title is too long')
+    .trim(),
+  description: z
+    .string()
+    .min(20, 'Description must be at least 20 characters')
+    .max(5000, 'Description is too long')
+    .trim(),
+  category: z
+    .string()
+    .max(100, 'Category is too long')
+    .trim()
+    .optional()
+    .or(z.literal('')),
+  isAnonymous: z.boolean().default(false),
+});
+
+export type CreateComplaintSchema = z.infer<typeof createComplaintSchema>;

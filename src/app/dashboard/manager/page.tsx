@@ -18,19 +18,19 @@ export default async function ManagerDashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <DashboardCard
-          href="/complaints"
+          href="/dashboard/complaints"
           title="Review Complaints"
           description="View all pending complaints submitted by employees."
           accent="blue"
         />
         <DashboardCard
-          href="/cases"
+          href="/dashboard/cases"
           title="Case Assignments"
           description="Assign investigators and monitor case progress."
           accent="amber"
         />
         <DashboardCard
-          href="/notifications"
+          href="/dashboard/notifications"
           title="Notifications"
           description="Updates on cases and team activity."
           accent="green"

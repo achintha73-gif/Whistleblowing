@@ -18,19 +18,19 @@ export default async function AdminDashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <DashboardCard
-          href="/users"
+          href="/dashboard/users"
           title="User Management"
           description="Create, edit and deactivate user accounts."
           accent="purple"
         />
         <DashboardCard
-          href="/settings"
+          href="/dashboard/settings"
           title="System Settings"
           description="Configure system-wide settings and options."
           accent="blue"
         />
         <DashboardCard
-          href="/logs"
+          href="/dashboard/logs"
           title="Activity Logs"
           description="Audit trail of important system events."
           accent="amber"

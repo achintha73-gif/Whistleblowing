@@ -18,19 +18,19 @@ export default async function InvestigatorDashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <DashboardCard
-          href="/investigations"
+          href="/dashboard/investigations"
           title="My Assigned Cases"
           description="Cases assigned to you for investigation."
           accent="amber"
         />
         <DashboardCard
-          href="/evidence"
+          href="/dashboard/evidence"
           title="Evidence"
           description="Upload and review evidence for your cases."
           accent="blue"
         />
         <DashboardCard
-          href="/notifications"
+          href="/dashboard/notifications"
           title="Notifications"
           description="Updates from managers and the system."
           accent="green"

@@ -18,19 +18,19 @@ export default async function UserDashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <DashboardCard
-          href="/complaints/new"
+          href="/dashboard/complaints/new"
           title="Submit a Complaint"
           description="Report a concern. You can submit anonymously."
           accent="blue"
         />
         <DashboardCard
-          href="/complaints"
+          href="/dashboard/complaints"
           title="My Complaints"
           description="View the complaints you have submitted."
           accent="green"
         />
         <DashboardCard
-          href="/notifications"
+          href="/dashboard/notifications"
           title="Notifications"
           description="Updates about your complaint investigations."
           accent="amber"
