@@ -65,7 +65,11 @@ export default async function ComplaintsListPage() {
       ) : (
         <div className="space-y-3">
           {complaints.map((complaint) => (
-            <ComplaintCard key={complaint.complaintId} complaint={complaint} />
+            <ComplaintCard
+  key={complaint.complaintId}
+  complaint={complaint}
+  showCreateCaseAction={user.roleName === 'MANAGER'}
+/>
           ))}
         </div>
       )}

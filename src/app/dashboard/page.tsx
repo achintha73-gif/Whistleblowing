@@ -1,5 +1,13 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
+import type { RoleName } from '@/features/auth/types';
+
+const ROLE_DASHBOARDS: Record<RoleName, string> = {
+  ADMIN: '/dashboard/admin',
+  MANAGER: '/dashboard/manager',
+  INVESTIGATOR: '/dashboard/investigator',
+  USER: '/dashboard/user',
+};
 
 export default async function DashboardRootPage() {
   const user = await getSession();
@@ -7,16 +15,6 @@ export default async function DashboardRootPage() {
     redirect('/login');
   }
 
-  // Send each role to its own dashboard
-  switch (user.roleName) {
-    case 'ADMIN':
-      redirect('/dashboard/admin');
-    case 'MANAGER':
-      redirect('/dashboard/manager');
-    case 'INVESTIGATOR':
-      redirect('/dashboard/investigator');
-    case 'USER':
-    default:
-      redirect('/dashboard/user');
-  }
+  const target = ROLE_DASHBOARDS[user.roleName] ?? '/dashboard/user';
+  redirect(target);
 }

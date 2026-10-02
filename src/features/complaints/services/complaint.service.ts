@@ -26,10 +26,6 @@ type PrismaComplaintRow = {
   } | null;
 };
 
-/**
- * Convert a Prisma complaint row into a safe DTO for the client.
- * Anonymous complaints hide the author even if `user` is present.
- */
 export function toComplaintDTO(row: PrismaComplaintRow): ComplaintDTO {
   const author =
     !row.isAnonymous && row.user
@@ -78,11 +74,6 @@ export interface SubmitComplaintError {
   error: string;
 }
 
-/**
- * Submit a new complaint.
- * Only USER (Employee) role can submit.
- * If anonymous, the DB stores user_id = null.
- */
 export async function submitComplaint(
   user: SafeUser,
   input: CreateComplaintInput
@@ -114,10 +105,6 @@ export async function submitComplaint(
 // Get My Complaints
 // -------------------------------------------------------------
 
-/**
- * Return the complaints submitted by this user.
- * Anonymous submissions are NOT returned here (they have no user_id).
- */
 export async function getMyComplaints(
   user: SafeUser
 ): Promise<ComplaintSummary[]> {
@@ -129,15 +116,6 @@ export async function getMyComplaints(
 // Get Single Complaint (with access control)
 // -------------------------------------------------------------
 
-/**
- * Get a complaint by ID.
- * Access rules:
- *   - USER: can only see their OWN non-anonymous complaints
- *   - MANAGER / INVESTIGATOR / ADMIN: can see any complaint
- *
- * Anonymous complaints are visible to staff only (their own author cannot
- * be identified even if the original submitter comes back).
- */
 export async function getComplaintForUser(
   user: SafeUser,
   complaintId: number
@@ -150,12 +128,10 @@ export async function getComplaintForUser(
     user.roleName === 'INVESTIGATOR' ||
     user.roleName === 'ADMIN';
 
-  // Staff can view everything
   if (isStaff) {
     return toComplaintDTO(row);
   }
 
-  // USER role: only see own, non-anonymous complaints
   if (row.user_id !== user.userId) {
     return null;
   }
@@ -167,10 +143,6 @@ export async function getComplaintForUser(
 // Staff: List All Complaints
 // -------------------------------------------------------------
 
-/**
- * Managers / Investigators / Admins can list all complaints.
- * USER role is denied.
- */
 export async function getAllComplaintsForStaff(
   user: SafeUser,
   filter?: { status?: ComplaintDTO['status'] }
@@ -187,11 +159,49 @@ export async function getAllComplaintsForStaff(
 }
 
 // -------------------------------------------------------------
-// Dashboard stats
+// Dashboard stats (global)
 // -------------------------------------------------------------
 
 export async function getComplaintStats() {
   const byStatus = await repo.countComplaintsByStatus();
   const total = await repo.countAllComplaints();
   return { total, byStatus };
+}
+
+// -------------------------------------------------------------
+// Per-user stats (Employee dashboard)
+// -------------------------------------------------------------
+
+export interface UserComplaintStats {
+  total: number;
+  pending: number;
+  underReview: number;
+  approved: number;
+  rejected: number;
+  convertedToCase: number;
+  recent: ComplaintSummary[];
+}
+
+export async function getUserComplaintStats(
+  user: SafeUser
+): Promise<UserComplaintStats> {
+  const counts = await repo.countUserComplaintsByStatus(user.userId);
+  const recentRows = await repo.getRecentUserComplaints(user.userId, 5);
+
+  const total =
+    (counts.PENDING ?? 0) +
+    (counts.UNDER_REVIEW ?? 0) +
+    (counts.APPROVED ?? 0) +
+    (counts.REJECTED ?? 0) +
+    (counts.CONVERTED_TO_CASE ?? 0);
+
+  return {
+    total,
+    pending: counts.PENDING ?? 0,
+    underReview: counts.UNDER_REVIEW ?? 0,
+    approved: counts.APPROVED ?? 0,
+    rejected: counts.REJECTED ?? 0,
+    convertedToCase: counts.CONVERTED_TO_CASE ?? 0,
+    recent: recentRows.map(toComplaintSummary),
+  };
 }

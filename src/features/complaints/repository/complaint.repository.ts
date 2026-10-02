@@ -104,3 +104,37 @@ export async function countComplaintsByStatus() {
 export async function countAllComplaints(): Promise<number> {
   return prisma.complaint.count();
 }
+
+/**
+ * Count complaints for a specific user, grouped by status.
+ */
+export async function countUserComplaintsByStatus(userId: number) {
+  const rows = await prisma.complaint.groupBy({
+    by: ['status'],
+    where: { user_id: userId },
+    _count: { _all: true },
+  });
+
+  const counts: Record<string, number> = {};
+  for (const row of rows) {
+    counts[row.status] = row._count._all;
+  }
+  return counts;
+}
+
+/**
+ * Get the most recent N complaints for a user.
+ */
+export async function getRecentUserComplaints(
+  userId: number,
+  limit: number = 5
+) {
+  return prisma.complaint.findMany({
+    where: { user_id: userId },
+    orderBy: { created_at: 'desc' },
+    take: limit,
+    include: {
+      user: { select: AUTHOR_SELECT },
+    },
+  });
+}

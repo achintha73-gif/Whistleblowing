@@ -107,3 +107,38 @@ export const createComplaintSchema = z.object({
 });
 
 export type CreateComplaintSchema = z.infer<typeof createComplaintSchema>;
+// -------------------------------------------------------------
+// Case Validation Schemas
+// -------------------------------------------------------------
+
+const CASE_PRIORITY_VALUES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as const;
+const CASE_STATUS_VALUES = [
+  'OPEN',
+  'INVESTIGATING',
+  'PENDING_REVIEW',
+  'CLOSED',
+  'ARCHIVED',
+] as const;
+
+export const createCaseSchema = z.object({
+  complaintId: z
+    .number()
+    .int()
+    .positive('Complaint ID must be positive'),
+  priority: z.enum(CASE_PRIORITY_VALUES).optional(),
+});
+
+export const assignInvestigatorSchema = z.object({
+  investigatorId: z
+    .number()
+    .int()
+    .positive('Investigator ID must be positive'),
+});
+
+export const updateCaseStatusSchema = z.object({
+  status: z.enum(CASE_STATUS_VALUES),
+});
+
+export type CreateCaseSchema = z.infer<typeof createCaseSchema>;
+export type AssignInvestigatorSchema = z.infer<typeof assignInvestigatorSchema>;
+export type UpdateCaseStatusSchema = z.infer<typeof updateCaseStatusSchema>;
