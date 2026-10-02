@@ -4,6 +4,7 @@ import { getSession } from '@/lib/auth';
 import { LogoutButton } from '@/features/auth/components/LogoutButton';
 import { UserBadge } from '@/features/auth/components/UserBadge';
 import { DashboardSidebar } from '@/features/auth/components/DashboardSidebar';
+import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 
 export default async function DashboardLayout({
   children,
@@ -26,7 +27,8 @@ export default async function DashboardLayout({
             </span>
           </Link>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <NotificationBell />
             <UserBadge user={user} />
             <LogoutButton />
           </div>

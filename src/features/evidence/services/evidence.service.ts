@@ -2,6 +2,10 @@ import type { SafeUser } from '@/features/auth/types';
 import type { EvidenceDTO, CreateEvidenceInput } from '../types';
 import * as evidenceRepo from '../repository/evidence.repository';
 import * as caseRepo from '@/features/cases/repository/case.repository';
+import {
+  notifyUser,
+  getManagerForCase,
+} from '@/features/notifications/services/notification.service';
 
 // -------------------------------------------------------------
 // Prisma -> DTO
@@ -28,15 +32,9 @@ export function toEvidenceDTO(row: PrismaEvidenceRow): EvidenceDTO {
 }
 
 // -------------------------------------------------------------
-// Permission helper
+// Permission helpers
 // -------------------------------------------------------------
 
-/**
- * Check if the user can view evidence on a case.
- * - MANAGER / ADMIN: yes
- * - INVESTIGATOR: only if assigned to this case
- * - USER: no
- */
 export async function canViewEvidence(
   user: SafeUser,
   caseId: number
@@ -55,12 +53,6 @@ export async function canViewEvidence(
   return false;
 }
 
-/**
- * Check if the user can ADD evidence on a case.
- * - INVESTIGATOR: only if assigned
- * - MANAGER / ADMIN: no (evidence collection is investigator's job)
- * - USER: no
- */
 export async function canAddEvidence(
   user: SafeUser,
   caseId: number
@@ -124,6 +116,13 @@ export async function addEvidence(
     description: input.description?.trim() || null,
   });
 
+  // Notify the manager
+  const managerId = await getManagerForCase(input.caseId);
+  await notifyUser(
+    managerId,
+    `Investigator ${user.name} added evidence "${input.fileName}" to Case #${input.caseId}.`
+  );
+
   return {
     success: true,
     evidence: toEvidenceDTO(created),
@@ -145,4 +144,32 @@ export async function getEvidenceForCase(
 
   const rows = await evidenceRepo.listEvidenceForCase(caseId);
   return rows.map(toEvidenceDTO);
+}
+
+// -------------------------------------------------------------
+// Evidence Overview (for investigator's Evidence dashboard)
+// -------------------------------------------------------------
+
+export interface CaseEvidenceGroup {
+  caseId: number;
+  complaintTitle: string;
+  evidence: EvidenceDTO[];
+}
+
+/**
+ * Get evidence grouped by case for an investigator's Evidence dashboard.
+ * Only for INVESTIGATOR role.
+ */
+export async function getEvidenceOverviewForInvestigator(
+  user: SafeUser
+): Promise<CaseEvidenceGroup[]> {
+  if (user.roleName !== 'INVESTIGATOR') return [];
+
+  const rows = await evidenceRepo.getEvidenceByInvestigator(user.userId);
+
+  return rows.map((row) => ({
+    caseId: row.case_id,
+    complaintTitle: row.complaint.title,
+    evidence: row.evidence.map((e) => toEvidenceDTO(e as PrismaEvidenceRow)),
+  }));
 }

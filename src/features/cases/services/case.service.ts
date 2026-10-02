@@ -8,6 +8,10 @@ import type {
 } from '../types';
 import * as caseRepo from '../repository/case.repository';
 import * as complaintRepo from '@/features/complaints/repository/complaint.repository';
+import {
+  notifyUser,
+  getManagerForCase,
+} from '@/features/notifications/services/notification.service';
 
 // -------------------------------------------------------------
 // Prisma -> DTO mappers
@@ -112,7 +116,6 @@ export async function createCaseFromComplaint(
     return { success: false, error: 'Rejected complaints cannot be converted' };
   }
 
-  // Atomic: create case + update complaint status + log initial history
   const created = await prisma.$transaction(async (tx) => {
     const newCase = await tx.case.create({
       data: {
@@ -152,6 +155,13 @@ export async function createCaseFromComplaint(
     return newCase;
   });
 
+  if (complaint.user_id) {
+    await notifyUser(
+      complaint.user_id,
+      `Your complaint "${complaint.title}" has been converted to Case #${created.case_id}.`
+    );
+  }
+
   return { success: true, caseDetail: toCaseDetail(created as PrismaCaseRow) };
 }
 
@@ -173,7 +183,6 @@ export async function listCasesForUser(
     return rows.map((r) => toCaseSummary(r as PrismaCaseRow));
   }
 
-  // USER role - no access to cases
   throw new Error('Forbidden');
 }
 
@@ -188,23 +197,20 @@ export async function getCaseForUser(
   const row = await caseRepo.findCaseById(caseId);
   if (!row) return null;
 
-  // Manager and Admin see any case
   if (user.roleName === 'MANAGER' || user.roleName === 'ADMIN') {
     return toCaseDetail(row as PrismaCaseRow);
   }
 
-  // Investigator sees only their assigned cases
   if (user.roleName === 'INVESTIGATOR') {
     if (row.assigned_investigator_id !== user.userId) return null;
     return toCaseDetail(row as PrismaCaseRow);
   }
 
-  // USER role cannot access cases
   return null;
 }
 
 // -------------------------------------------------------------
-// Assign Investigator (MANAGER only, atomic)
+// Assign Investigator (MANAGER only)
 // -------------------------------------------------------------
 
 export async function assignInvestigatorToCase(
@@ -219,7 +225,6 @@ export async function assignInvestigatorToCase(
   const caseRow = await caseRepo.findCaseById(caseId);
   if (!caseRow) return { success: false, error: 'Case not found' };
 
-  // Verify target user exists and has INVESTIGATOR role
   const investigator = await prisma.user.findUnique({
     where: { user_id: investigatorId },
     include: { role: true },
@@ -235,11 +240,16 @@ export async function assignInvestigatorToCase(
 
   await caseRepo.assignInvestigator(caseId, investigatorId);
 
+  await notifyUser(
+    investigatorId,
+    `You have been assigned to Case #${caseId}: ${caseRow.complaint.title}`
+  );
+
   return { success: true };
 }
 
 // -------------------------------------------------------------
-// Update Status (MANAGER or INVESTIGATOR, atomic)
+// Update Status (MANAGER or INVESTIGATOR)
 // -------------------------------------------------------------
 
 export async function updateCaseStatusForUser(
@@ -250,11 +260,9 @@ export async function updateCaseStatusForUser(
   const caseRow = await caseRepo.findCaseById(caseId);
   if (!caseRow) return { success: false, error: 'Case not found' };
 
-  // Permission checks
   if (user.roleName === 'MANAGER') {
     // Manager can update any case
   } else if (user.roleName === 'INVESTIGATOR') {
-    // Investigator can only update their assigned cases
     if (caseRow.assigned_investigator_id !== user.userId) {
       return { success: false, error: 'You are not assigned to this case' };
     }
@@ -266,7 +274,6 @@ export async function updateCaseStatusForUser(
     return { success: false, error: 'Case is already in this status' };
   }
 
-  // Atomic: update status + log history
   await prisma.$transaction(async (tx) => {
     const isClosed = newStatus === 'CLOSED' || newStatus === 'ARCHIVED';
     await tx.case.update({
@@ -286,11 +293,33 @@ export async function updateCaseStatusForUser(
     });
   });
 
+  // Notify the complainant if not anonymous
+  const fullComplaint = await prisma.complaint.findUnique({
+    where: { complaint_id: caseRow.complaint_id },
+    select: { user_id: true, isAnonymous: true },
+  });
+
+  if (fullComplaint?.user_id && !fullComplaint.isAnonymous) {
+    await notifyUser(
+      fullComplaint.user_id,
+      `The status of your case (Case #${caseId}) has been updated to "${newStatus}".`
+    );
+  }
+
+  // Notify the manager — but only if an INVESTIGATOR made the change
+  if (user.roleName === 'INVESTIGATOR') {
+    const managerId = await getManagerForCase(caseId);
+    await notifyUser(
+      managerId,
+      `Investigator ${user.name} updated Case #${caseId} to "${newStatus}".`
+    );
+  }
+
   return { success: true };
 }
 
 // -------------------------------------------------------------
-// List Available Investigators (for manager dropdown)
+// List Available Investigators
 // -------------------------------------------------------------
 
 export async function listAvailableInvestigators() {

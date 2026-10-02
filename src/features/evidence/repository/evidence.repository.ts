@@ -4,9 +4,6 @@ import { prisma } from '@/lib/db';
  * Evidence Repository - DB access ONLY.
  */
 
-/**
- * Create evidence for a case.
- */
 export async function createEvidence(data: {
   case_id: number;
   file_name: string;
@@ -23,9 +20,6 @@ export async function createEvidence(data: {
   });
 }
 
-/**
- * List all evidence for a case, newest first.
- */
 export async function listEvidenceForCase(caseId: number) {
   return prisma.evidence.findMany({
     where: { case_id: caseId },
@@ -33,18 +27,35 @@ export async function listEvidenceForCase(caseId: number) {
   });
 }
 
-/**
- * Find a single evidence item by ID.
- */
 export async function findEvidenceById(evidenceId: number) {
   return prisma.evidence.findUnique({
     where: { evidence_id: evidenceId },
   });
 }
 
-/**
- * Count evidence items for a case.
- */
 export async function countEvidenceForCase(caseId: number): Promise<number> {
   return prisma.evidence.count({ where: { case_id: caseId } });
+}
+
+/**
+ * Get evidence for all cases assigned to an investigator.
+ * Returns each case with its evidence list.
+ * Used by the investigator's Evidence dashboard.
+ */
+export async function getEvidenceByInvestigator(investigatorId: number) {
+  return prisma.case.findMany({
+    where: { assigned_investigator_id: investigatorId },
+    orderBy: { created_at: 'desc' },
+    select: {
+      case_id: true,
+      complaint: {
+        select: {
+          title: true,
+        },
+      },
+      evidence: {
+        orderBy: { uploaded_at: 'desc' },
+      },
+    },
+  });
 }

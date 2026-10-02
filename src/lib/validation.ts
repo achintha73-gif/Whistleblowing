@@ -186,3 +186,16 @@ export const upsertReportSchema = z.object({
 });
 
 export type UpsertReportSchema = z.infer<typeof upsertReportSchema>;
+
+// -------------------------------------------------------------
+// Notification Validation Schemas
+// -------------------------------------------------------------
+
+export const markNotificationReadSchema = z.object({
+  notificationId: z
+    .number()
+    .int()
+    .positive('Notification ID must be positive'),
+});
+
+export type MarkNotificationReadSchema = z.infer<typeof markNotificationReadSchema>;

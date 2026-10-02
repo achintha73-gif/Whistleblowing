@@ -2,6 +2,10 @@ import type { SafeUser } from '@/features/auth/types';
 import type { InvestigationReportDTO, UpsertReportInput } from '../types';
 import * as reportRepo from '../repository/report.repository';
 import * as caseRepo from '@/features/cases/repository/case.repository';
+import {
+  notifyUser,
+  getManagerForCase,
+} from '@/features/notifications/services/notification.service';
 
 // -------------------------------------------------------------
 // Prisma -> DTO
@@ -29,9 +33,6 @@ export function toReportDTO(row: PrismaReportRow): InvestigationReportDTO {
 // Permission helpers
 // -------------------------------------------------------------
 
-/**
- * Manager, Admin, and assigned Investigator can view the report.
- */
 export async function canViewReport(
   user: SafeUser,
   caseId: number
@@ -50,9 +51,6 @@ export async function canViewReport(
   return false;
 }
 
-/**
- * Only assigned investigator can create/update the report.
- */
 export async function canUpsertReport(
   user: SafeUser,
   caseId: number
@@ -83,7 +81,7 @@ export async function getReportForCase(
 }
 
 // -------------------------------------------------------------
-// Upsert Report (create OR update)
+// Upsert Report
 // -------------------------------------------------------------
 
 export interface UpsertReportResult {
@@ -123,6 +121,7 @@ export async function upsertReport(
   const existing = await reportRepo.findReportByCaseId(input.caseId);
 
   let saved;
+  const isNew = !existing;
   if (existing) {
     saved = await reportRepo.updateReport(existing.report_id, {
       findings: input.findings,
@@ -135,6 +134,13 @@ export async function upsertReport(
       recommendation: input.recommendation,
     });
   }
+
+  // Notify the manager
+  const managerId = await getManagerForCase(input.caseId);
+  await notifyUser(
+    managerId,
+    `Investigator ${user.name} ${isNew ? 'submitted' : 'updated'} the investigation report for Case #${input.caseId}.`
+  );
 
   return { success: true, report: toReportDTO(saved) };
 }
