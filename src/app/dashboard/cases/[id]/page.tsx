@@ -10,6 +10,17 @@ import {
   getCaseForUser,
   getCaseHistory,
 } from '@/features/cases/services/case.service';
+import { EvidenceList } from '@/features/evidence/components/EvidenceList';
+import { AddEvidenceForm } from '@/features/evidence/components/AddEvidenceForm';
+import {
+  getEvidenceForCase,
+  canAddEvidence,
+} from '@/features/evidence/services/evidence.service';
+import { ReportPanel } from '@/features/investigation/components/ReportPanel';
+import {
+  getReportForCase,
+  canUpsertReport,
+} from '@/features/investigation/services/report.service';
 
 export default async function CaseDetailPage({
   params,
@@ -31,6 +42,10 @@ export default async function CaseDetailPage({
   }
 
   const history = await getCaseHistory(caseId);
+  const evidence = await getEvidenceForCase(user, caseId);
+  const canAdd = await canAddEvidence(user, caseId);
+  const report = await getReportForCase(user, caseId);
+  const canEditReport = await canUpsertReport(user, caseId);
 
   const isManager = user.roleName === 'MANAGER';
   const isAssignedInvestigator =
@@ -146,7 +161,7 @@ export default async function CaseDetailPage({
         </p>
       </div>
 
-      {/* Actions */}
+      {/* Assign investigator (manager only) */}
       {isManager && (
         <AssignInvestigatorDropdown
           caseId={caseDetail.caseId}
@@ -156,12 +171,33 @@ export default async function CaseDetailPage({
         />
       )}
 
+      {/* Update status */}
       {canUpdateStatus && (
         <UpdateStatusPanel
           caseId={caseDetail.caseId}
           currentStatus={caseDetail.status}
         />
       )}
+
+      {/* Evidence */}
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <h2 className="text-sm font-semibold text-gray-700">
+            Evidence ({evidence.length})
+          </h2>
+          {canAdd && <AddEvidenceForm caseId={caseDetail.caseId} />}
+        </div>
+        <EvidenceList evidence={evidence} />
+      </div>
+
+      {/* Investigation Report */}
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <ReportPanel
+          caseId={caseDetail.caseId}
+          report={report}
+          canEdit={canEditReport}
+        />
+      </div>
 
       {/* Timeline */}
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">

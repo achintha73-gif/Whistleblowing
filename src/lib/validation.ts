@@ -107,6 +107,7 @@ export const createComplaintSchema = z.object({
 });
 
 export type CreateComplaintSchema = z.infer<typeof createComplaintSchema>;
+
 // -------------------------------------------------------------
 // Case Validation Schemas
 // -------------------------------------------------------------
@@ -142,3 +143,46 @@ export const updateCaseStatusSchema = z.object({
 export type CreateCaseSchema = z.infer<typeof createCaseSchema>;
 export type AssignInvestigatorSchema = z.infer<typeof assignInvestigatorSchema>;
 export type UpdateCaseStatusSchema = z.infer<typeof updateCaseStatusSchema>;
+
+// -------------------------------------------------------------
+// Evidence Validation Schemas
+// -------------------------------------------------------------
+
+export const createEvidenceSchema = z.object({
+  fileName: z
+    .string()
+    .min(1, 'File name is required')
+    .max(255, 'File name is too long')
+    .trim(),
+  fileType: z
+    .string()
+    .min(1, 'File type is required')
+    .max(50, 'File type is too long')
+    .trim(),
+  description: z
+    .string()
+    .max(2000, 'Description is too long')
+    .trim()
+    .optional()
+    .or(z.literal('')),
+});
+
+export type CreateEvidenceSchema = z.infer<typeof createEvidenceSchema>;
+// -------------------------------------------------------------
+// Investigation Report Validation Schemas
+// -------------------------------------------------------------
+
+export const upsertReportSchema = z.object({
+  findings: z
+    .string()
+    .min(20, 'Findings must be at least 20 characters')
+    .max(10000, 'Findings are too long')
+    .trim(),
+  recommendation: z
+    .string()
+    .min(10, 'Recommendation must be at least 10 characters')
+    .max(5000, 'Recommendation is too long')
+    .trim(),
+});
+
+export type UpsertReportSchema = z.infer<typeof upsertReportSchema>;

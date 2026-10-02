@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getSession } from '@/lib/auth';
+import { FolderOpen, FileText, Bell } from 'lucide-react';
 
 export default async function InvestigatorDashboardPage() {
   const user = await getSession();
@@ -18,22 +19,25 @@ export default async function InvestigatorDashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <DashboardCard
-          href="/dashboard/investigations"
+          href="/dashboard/cases"
           title="My Assigned Cases"
           description="Cases assigned to you for investigation."
-          accent="amber"
+          icon={<FolderOpen className="h-6 w-6" />}
+          accent="border-amber-200 hover:border-amber-400 text-amber-600"
         />
         <DashboardCard
-          href="/dashboard/evidence"
+          href="/dashboard/cases"
           title="Evidence"
-          description="Upload and review evidence for your cases."
-          accent="blue"
+          description="Review evidence attached to your cases."
+          icon={<FileText className="h-6 w-6" />}
+          accent="border-blue-200 hover:border-blue-400 text-blue-600"
         />
         <DashboardCard
           href="/dashboard/notifications"
           title="Notifications"
           description="Updates from managers and the system."
-          accent="green"
+          icon={<Bell className="h-6 w-6" />}
+          accent="border-green-200 hover:border-green-400 text-green-600"
         />
       </div>
     </div>
@@ -44,27 +48,25 @@ function DashboardCard({
   href,
   title,
   description,
+  icon,
   accent,
 }: {
   href: string;
   title: string;
   description: string;
-  accent: 'blue' | 'green' | 'amber' | 'purple';
+  icon: React.ReactNode;
+  accent: string;
 }) {
-  const colors = {
-    blue: 'border-blue-200 hover:border-blue-400',
-    green: 'border-green-200 hover:border-green-400',
-    amber: 'border-amber-200 hover:border-amber-400',
-    purple: 'border-purple-200 hover:border-purple-400',
-  } as const;
-
   return (
     <Link
       href={href}
-      className={`block rounded-lg border-2 bg-white p-5 shadow-sm transition ${colors[accent]}`}
+      className={`block rounded-lg border-2 bg-white p-5 shadow-sm transition ${accent}`}
     >
-      <h2 className="text-base font-semibold text-gray-900">{title}</h2>
-      <p className="mt-1 text-sm text-gray-600">{description}</p>
+      <div className="flex items-center gap-3 mb-2">
+        {icon}
+        <h2 className="text-base font-semibold text-gray-900">{title}</h2>
+      </div>
+      <p className="text-sm text-gray-600">{description}</p>
     </Link>
   );
 }

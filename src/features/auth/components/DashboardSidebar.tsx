@@ -36,7 +36,7 @@ const MENU_BY_ROLE: Record<RoleName, MenuItem[]> = {
   ],
   INVESTIGATOR: [
     { href: '/dashboard/investigator', label: 'Dashboard', icon: Home, exact: true },
-    { href: '/dashboard/investigations', label: 'My Cases', icon: FolderOpen },
+    { href: '/dashboard/cases', label: 'My Cases', icon: FolderOpen },
     { href: '/dashboard/evidence', label: 'Evidence', icon: FileText },
     { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
   ],
