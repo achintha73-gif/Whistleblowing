@@ -9,6 +9,7 @@ export async function createEvidence(data: {
   file_name: string;
   file_type: string;
   description: string | null;
+  file_path: string | null;
 }) {
   return prisma.evidence.create({
     data: {
@@ -16,6 +17,7 @@ export async function createEvidence(data: {
       file_name: data.file_name,
       file_type: data.file_type,
       description: data.description,
+      file_path: data.file_path,
     },
   });
 }
@@ -37,11 +39,6 @@ export async function countEvidenceForCase(caseId: number): Promise<number> {
   return prisma.evidence.count({ where: { case_id: caseId } });
 }
 
-/**
- * Get evidence for all cases assigned to an investigator.
- * Returns each case with its evidence list.
- * Used by the investigator's Evidence dashboard.
- */
 export async function getEvidenceByInvestigator(investigatorId: number) {
   return prisma.case.findMany({
     where: { assigned_investigator_id: investigatorId },

@@ -2,10 +2,6 @@
 // Evidence Feature - Type Definitions
 // -------------------------------------------------------------
 
-/**
- * Categories of evidence - used for filtering/display.
- * Not enforced by DB (file_type is a string), just a UI helper.
- */
 export const EVIDENCE_TYPES = [
   'Document',
   'Image',
@@ -28,10 +24,12 @@ export interface EvidenceDTO {
   fileType: string;
   description: string | null;
   uploadedAt: Date;
+  hasFile: boolean;
 }
 
 /**
- * Input for creating evidence.
+ * Input for creating evidence (JSON metadata).
+ * Kept for backward compatibility — new uploads go through FormData.
  */
 export interface CreateEvidenceInput {
   caseId: number;

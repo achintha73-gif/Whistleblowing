@@ -18,6 +18,7 @@ type PrismaEvidenceRow = {
   file_type: string;
   description: string | null;
   uploaded_at: Date;
+  file_path: string | null;
 };
 
 export function toEvidenceDTO(row: PrismaEvidenceRow): EvidenceDTO {
@@ -28,6 +29,7 @@ export function toEvidenceDTO(row: PrismaEvidenceRow): EvidenceDTO {
     fileType: row.file_type,
     description: row.description,
     uploadedAt: row.uploaded_at,
+    hasFile: !!row.file_path,
   };
 }
 
@@ -66,7 +68,7 @@ export async function canAddEvidence(
 }
 
 // -------------------------------------------------------------
-// Add Evidence
+// Add Evidence (metadata-only, used internally / legacy)
 // -------------------------------------------------------------
 
 export interface AddEvidenceResult {
@@ -114,13 +116,75 @@ export async function addEvidence(
     file_name: input.fileName,
     file_type: input.fileType,
     description: input.description?.trim() || null,
+    file_path: null,
   });
 
-  // Notify the manager
   const managerId = await getManagerForCase(input.caseId);
   await notifyUser(
     managerId,
     `Investigator ${user.name} added evidence "${input.fileName}" to Case #${input.caseId}.`
+  );
+
+  return {
+    success: true,
+    evidence: toEvidenceDTO(created),
+  };
+}
+
+// -------------------------------------------------------------
+// Add Evidence with file (upload)
+// -------------------------------------------------------------
+
+export interface AddEvidenceWithFileInput {
+  caseId: number;
+  fileName: string;
+  fileType: string;
+  description: string | null;
+  filePath: string;
+}
+
+export async function addEvidenceWithFile(
+  user: SafeUser,
+  input: AddEvidenceWithFileInput
+): Promise<AddEvidenceResult | AddEvidenceError> {
+  const caseRow = await caseRepo.findCaseById(input.caseId);
+  if (!caseRow) {
+    return { success: false, error: 'Case not found' };
+  }
+
+  if (user.roleName !== 'INVESTIGATOR') {
+    return {
+      success: false,
+      error: 'Only investigators can add evidence',
+    };
+  }
+
+  if (caseRow.assigned_investigator_id !== user.userId) {
+    return {
+      success: false,
+      error: 'You are not assigned to this case',
+    };
+  }
+
+  if (caseRow.status === 'CLOSED' || caseRow.status === 'ARCHIVED') {
+    return {
+      success: false,
+      error: 'Cannot add evidence to a closed case',
+    };
+  }
+
+  const created = await evidenceRepo.createEvidence({
+    case_id: input.caseId,
+    file_name: input.fileName,
+    file_type: input.fileType,
+    description: input.description,
+    file_path: input.filePath,
+  });
+
+  const managerId = await getManagerForCase(input.caseId);
+  await notifyUser(
+    managerId,
+    `Investigator ${user.name} uploaded evidence "${input.fileName}" to Case #${input.caseId}.`
   );
 
   return {
@@ -147,7 +211,7 @@ export async function getEvidenceForCase(
 }
 
 // -------------------------------------------------------------
-// Evidence Overview (for investigator's Evidence dashboard)
+// Evidence Overview
 // -------------------------------------------------------------
 
 export interface CaseEvidenceGroup {
@@ -156,10 +220,6 @@ export interface CaseEvidenceGroup {
   evidence: EvidenceDTO[];
 }
 
-/**
- * Get evidence grouped by case for an investigator's Evidence dashboard.
- * Only for INVESTIGATOR role.
- */
 export async function getEvidenceOverviewForInvestigator(
   user: SafeUser
 ): Promise<CaseEvidenceGroup[]> {
@@ -172,4 +232,38 @@ export async function getEvidenceOverviewForInvestigator(
     complaintTitle: row.complaint.title,
     evidence: row.evidence.map((e) => toEvidenceDTO(e as PrismaEvidenceRow)),
   }));
+}
+
+// -------------------------------------------------------------
+// Get single evidence (for download route)
+// -------------------------------------------------------------
+
+export async function getEvidenceByIdForUser(
+  user: SafeUser,
+  evidenceId: number
+): Promise<{
+  evidence: {
+    evidenceId: number;
+    caseId: number;
+    fileName: string;
+    fileType: string;
+    filePath: string | null;
+  };
+} | null> {
+  const row = await evidenceRepo.findEvidenceById(evidenceId);
+  if (!row) return null;
+
+  // Check view permission on the case
+  const allowed = await canViewEvidence(user, row.case_id);
+  if (!allowed) return null;
+
+  return {
+    evidence: {
+      evidenceId: row.evidence_id,
+      caseId: row.case_id,
+      fileName: row.file_name,
+      fileType: row.file_type,
+      filePath: row.file_path,
+    },
+  };
 }

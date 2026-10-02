@@ -41,3 +41,7 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# Uploaded evidence (private, accessed via API only)
+/private-uploads/*
+!/private-uploads/.gitkeep

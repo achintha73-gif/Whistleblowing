@@ -1,9 +1,19 @@
 import type { EvidenceDTO } from '../types';
-import { FileText, Image, Video, Music, Mail, Camera, Paperclip } from 'lucide-react';
+import {
+  FileText,
+  Image as ImageIcon,
+  Video,
+  Music,
+  Mail,
+  Camera,
+  Paperclip,
+  Download,
+  Eye,
+} from 'lucide-react';
 
 const FILE_TYPE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   Document: FileText,
-  Image: Image,
+  Image: ImageIcon,
   Video: Video,
   Audio: Music,
   Email: Mail,
@@ -42,6 +52,11 @@ export function EvidenceList({ evidence }: { evidence: EvidenceDTO[] }) {
                   <span className="rounded-md bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
                     {item.fileType}
                   </span>
+                  {item.hasFile && (
+                    <span className="rounded-md bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                      File attached
+                    </span>
+                  )}
                 </div>
                 {item.description && (
                   <p className="mt-1 text-sm text-gray-600 whitespace-pre-wrap">
@@ -55,6 +70,28 @@ export function EvidenceList({ evidence }: { evidence: EvidenceDTO[] }) {
                     timeStyle: 'short',
                   })}
                 </p>
+
+                {item.hasFile && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <a
+                      href={`/api/evidence/${item.evidenceId}/download`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                    >
+                      <Eye className="h-3 w-3" />
+                      Preview
+                    </a>
+                    <a
+                      href={`/api/evidence/${item.evidenceId}/download`}
+                      download={item.fileName}
+                      className="inline-flex items-center gap-1 rounded-md border border-blue-300 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100"
+                    >
+                      <Download className="h-3 w-3" />
+                      Download
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           </li>
