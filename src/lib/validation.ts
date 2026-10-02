@@ -199,3 +199,30 @@ export const markNotificationReadSchema = z.object({
 });
 
 export type MarkNotificationReadSchema = z.infer<typeof markNotificationReadSchema>;
+
+// -------------------------------------------------------------
+// Additional Information Validation Schemas
+// -------------------------------------------------------------
+
+const INFORMATION_TYPE_VALUES = [
+  'ADDITIONAL_DETAILS',
+  'CLARIFICATION',
+  'SUPPORTING_INFO',
+  'CORRECTION',
+] as const;
+
+export const createAdditionalInfoSchema = z.object({
+  title: z
+    .string()
+    .min(5, 'Title must be at least 5 characters')
+    .max(200, 'Title is too long')
+    .trim(),
+  description: z
+    .string()
+    .min(10, 'Description must be at least 10 characters')
+    .max(3000, 'Description is too long')
+    .trim(),
+  informationType: z.enum(INFORMATION_TYPE_VALUES),
+});
+
+export type CreateAdditionalInfoSchema = z.infer<typeof createAdditionalInfoSchema>;

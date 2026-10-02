@@ -52,13 +52,13 @@ export default async function ComplaintsListPage() {
             {isStaff
               ? 'No complaints have been submitted yet.'
               : 'You have not submitted any complaints yet.'}
-          </p>
+          </p> 
           {user.roleName === 'USER' && (
             <Link
               href="/dashboard/complaints/new"
               className="mt-4 inline-block rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
-              Submit your first complaint
+              Submit your complaint
             </Link>
           )}
         </div>

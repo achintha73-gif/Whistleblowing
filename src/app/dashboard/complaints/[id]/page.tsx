@@ -3,6 +3,11 @@ import { notFound } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { ComplaintStatusBadge } from '@/features/complaints/components/ComplaintStatusBadge';
 import { getComplaintForUser } from '@/features/complaints/services/complaint.service';
+import { AdditionalInfoList } from '@/features/complaints/components/AdditionalInfoList';
+import { AddAdditionalInfoForm } from '@/features/complaints/components/AddAdditionalInfoForm';
+import {
+  getAdditionalInfoForComplaint,
+} from '@/features/complaints/services/additional-info.service';
 
 export default async function ComplaintDetailPage({
   params,
@@ -23,6 +28,17 @@ export default async function ComplaintDetailPage({
     notFound();
   }
 
+  const additionalInfo = await getAdditionalInfoForComplaint(
+    user,
+    complaintId
+  );
+
+  // Only the complaint owner (non-anonymous) can add more info
+  const canAddInfo =
+    user.roleName === 'USER' &&
+    !complaint.isAnonymous &&
+    complaint.author?.userId === user.userId;
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
@@ -34,6 +50,7 @@ export default async function ComplaintDetailPage({
         </Link>
       </div>
 
+      {/* Complaint header + details */}
       <div className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
@@ -97,6 +114,17 @@ export default async function ComplaintDetailPage({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Additional Information */}
+      <div className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <h2 className="text-sm font-semibold text-gray-700">
+            Additional Information ({additionalInfo.length})
+          </h2>
+          {canAddInfo && <AddAdditionalInfoForm complaintId={complaintId} />}
+        </div>
+        <AdditionalInfoList items={additionalInfo} />
       </div>
     </div>
   );

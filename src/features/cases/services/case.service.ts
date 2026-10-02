@@ -13,9 +13,8 @@ import {
   getManagerForCase,
 } from '@/features/notifications/services/notification.service';
 
-// -------------------------------------------------------------
+
 // Prisma -> DTO mappers
-// -------------------------------------------------------------
 
 type PrismaCaseRow = {
   case_id: number;
@@ -80,9 +79,7 @@ export function toCaseDetail(row: PrismaCaseRow): CaseDetail {
   };
 }
 
-// -------------------------------------------------------------
 // Create Case from Complaint (MANAGER only, atomic)
-// -------------------------------------------------------------
 
 export interface CreateCaseResult {
   success: true;
@@ -165,9 +162,7 @@ export async function createCaseFromComplaint(
   return { success: true, caseDetail: toCaseDetail(created as PrismaCaseRow) };
 }
 
-// -------------------------------------------------------------
 // List Cases (role-aware)
-// -------------------------------------------------------------
 
 export async function listCasesForUser(
   user: SafeUser,
@@ -186,9 +181,7 @@ export async function listCasesForUser(
   throw new Error('Forbidden');
 }
 
-// -------------------------------------------------------------
 // Get Single Case (access-controlled)
-// -------------------------------------------------------------
 
 export async function getCaseForUser(
   user: SafeUser,
@@ -209,9 +202,7 @@ export async function getCaseForUser(
   return null;
 }
 
-// -------------------------------------------------------------
 // Assign Investigator (MANAGER only)
-// -------------------------------------------------------------
 
 export async function assignInvestigatorToCase(
   user: SafeUser,
@@ -248,9 +239,7 @@ export async function assignInvestigatorToCase(
   return { success: true };
 }
 
-// -------------------------------------------------------------
 // Update Status (MANAGER or INVESTIGATOR)
-// -------------------------------------------------------------
 
 export async function updateCaseStatusForUser(
   user: SafeUser,
@@ -317,10 +306,7 @@ export async function updateCaseStatusForUser(
 
   return { success: true };
 }
-
-// -------------------------------------------------------------
 // List Available Investigators
-// -------------------------------------------------------------
 
 export async function listAvailableInvestigators() {
   return prisma.user.findMany({
