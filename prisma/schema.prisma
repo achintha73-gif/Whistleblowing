@@ -206,7 +206,7 @@ model CaseStatusHistory {
 model Evidence {
   evidence_id Int      @id @default(autoincrement())
   file_name   String   @db.VarChar(255)
-  file_type   String   @db.VarChar(50)
+  file_type   String   @db.VarChar(150)
   description String?  @db.Text
   uploaded_at DateTime @default(now())
   file_path   String?  @db.VarChar(500)
