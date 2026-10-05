@@ -5,6 +5,7 @@ import type {
   CreateComplaintInput,
 } from '../types';
 import * as repo from '../repository/complaint.repository';
+import { prisma } from '@/lib/db';
 
 // -------------------------------------------------------------
 // Prisma -> DTO mapper
@@ -61,7 +62,7 @@ export function toComplaintSummary(row: PrismaComplaintRow): ComplaintSummary {
 }
 
 // -------------------------------------------------------------
-// Submit Complaint (USER role)
+// Submit Complaint
 // -------------------------------------------------------------
 
 export interface SubmitComplaintResult {
@@ -169,7 +170,7 @@ export async function getComplaintStats() {
 }
 
 // -------------------------------------------------------------
-// Per-user stats (Employee dashboard)
+// Per-user stats
 // -------------------------------------------------------------
 
 export interface UserComplaintStats {
@@ -204,4 +205,76 @@ export async function getUserComplaintStats(
     convertedToCase: counts.CONVERTED_TO_CASE ?? 0,
     recent: recentRows.map(toComplaintSummary),
   };
+}
+
+// -------------------------------------------------------------
+// Delete Complaint
+// -------------------------------------------------------------
+
+/**
+ * Check if user can delete a complaint:
+ *  - USER: only own complaints, only status = PENDING
+ *  - MANAGER: any PENDING or REJECTED complaint
+ *  - ADMIN: any except CONVERTED_TO_CASE
+ *  - INVESTIGATOR: never
+ */
+export async function canDeleteComplaint(
+  user: SafeUser,
+  complaintId: number
+): Promise<boolean> {
+  const row = await prisma.complaint.findUnique({
+    where: { complaint_id: complaintId },
+    select: { user_id: true, status: true },
+  });
+
+  if (!row) return false;
+
+  // Never allow deleting a complaint that has a case
+  if (row.status === 'CONVERTED_TO_CASE') return false;
+
+  if (user.roleName === 'ADMIN') {
+    return true;
+  }
+
+  if (user.roleName === 'MANAGER') {
+    return row.status === 'PENDING' || row.status === 'REJECTED';
+  }
+
+  if (user.roleName === 'USER') {
+    // Only own + only pending
+    if (row.user_id !== user.userId) return false;
+    return row.status === 'PENDING';
+  }
+
+  return false;
+}
+
+export async function deleteComplaint(
+  user: SafeUser,
+  complaintId: number
+): Promise<{ success: true } | { success: false; error: string }> {
+  const allowed = await canDeleteComplaint(user, complaintId);
+  if (!allowed) {
+    return { success: false, error: 'You cannot delete this complaint' };
+  }
+
+  // Block if a case exists (shouldn't happen given canDelete check, but be safe)
+  const existingCase = await prisma.case.findUnique({
+    where: { complaint_id: complaintId },
+    select: { case_id: true },
+  });
+  if (existingCase) {
+    return {
+      success: false,
+      error: 'Cannot delete a complaint that has a case',
+    };
+  }
+
+  // Cascade deletes: additional info, complaint-linked evidence
+  // (Prisma handles this via onDelete: Cascade on the relations)
+  await prisma.complaint.delete({
+    where: { complaint_id: complaintId },
+  });
+
+  return { success: true };
 }

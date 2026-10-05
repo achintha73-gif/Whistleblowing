@@ -16,24 +16,39 @@ export type EvidenceType = (typeof EVIDENCE_TYPES)[number];
 
 /**
  * Evidence as returned to the client.
+ * `source` tells whether it was uploaded by an employee (complaint)
+ * or by an investigator (case).
  */
 export interface EvidenceDTO {
   evidenceId: number;
-  caseId: number;
+  // Context
+  complaintId: number | null;
+  caseId: number | null;
+  source: 'complaint' | 'case';
+  // File info
   fileName: string;
   fileType: string;
+  fileSize: number | null;
   description: string | null;
   uploadedAt: Date;
   hasFile: boolean;
+  // Who uploaded
+  uploadedBy: {
+    userId: number;
+    name: string;
+    roleName: string;
+  } | null;
 }
 
 /**
- * Input for creating evidence (JSON metadata).
- * Kept for backward compatibility — new uploads go through FormData.
+ * Input for creating evidence from a complaint (employee upload).
  */
-export interface CreateEvidenceInput {
-  caseId: number;
+export interface CreateComplaintEvidenceInput {
+  complaintId: number;
   fileName: string;
   fileType: string;
+  fileSize: number | null;
   description?: string | null;
+  filePath: string;
+  uploadedBy: number | null;
 }

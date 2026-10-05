@@ -1,4 +1,5 @@
 import type { EvidenceDTO } from '../types';
+import { DeleteEvidenceButton } from './DeleteEvidenceButton';
 import {
   FileText,
   Image as ImageIcon,
@@ -21,7 +22,14 @@ const FILE_TYPE_ICONS: Record<string, React.ComponentType<{ className?: string }
   Other: Paperclip,
 };
 
-export function EvidenceList({ evidence }: { evidence: EvidenceDTO[] }) {
+export function EvidenceList({
+  evidence,
+  deletableIds = [],
+}: {
+  evidence: EvidenceDTO[];
+  /** IDs of evidence items the current user can delete */
+  deletableIds?: number[];
+}) {
   if (evidence.length === 0) {
     return (
       <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center">
@@ -35,6 +43,8 @@ export function EvidenceList({ evidence }: { evidence: EvidenceDTO[] }) {
     <ul className="space-y-3">
       {evidence.map((item) => {
         const Icon = FILE_TYPE_ICONS[item.fileType] ?? Paperclip;
+        const canDelete = deletableIds.includes(item.evidenceId);
+
         return (
           <li
             key={item.evidenceId}
@@ -57,6 +67,11 @@ export function EvidenceList({ evidence }: { evidence: EvidenceDTO[] }) {
                       File attached
                     </span>
                   )}
+                  {item.source === 'complaint' && (
+                    <span className="rounded-md bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                      From complaint
+                    </span>
+                  )}
                 </div>
                 {item.description && (
                   <p className="mt-1 text-sm text-gray-600 whitespace-pre-wrap">
@@ -69,29 +84,38 @@ export function EvidenceList({ evidence }: { evidence: EvidenceDTO[] }) {
                     dateStyle: 'medium',
                     timeStyle: 'short',
                   })}
+                  {item.uploadedBy && ` · by ${item.uploadedBy.name}`}
                 </p>
 
-                {item.hasFile && (
-                  <div className="mt-2 flex items-center gap-2">
-                    <a
-                      href={`/api/evidence/${item.evidenceId}/download`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                      <Eye className="h-3 w-3" />
-                      Preview
-                    </a>
-                    <a
-                      href={`/api/evidence/${item.evidenceId}/download`}
-                      download={item.fileName}
-                      className="inline-flex items-center gap-1 rounded-md border border-blue-300 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100"
-                    >
-                      <Download className="h-3 w-3" />
-                      Download
-                    </a>
-                  </div>
-                )}
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
+                  {item.hasFile && (
+                    <>
+                      <a
+                        href={`/api/evidence/${item.evidenceId}/download`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                      >
+                        <Eye className="h-3 w-3" />
+                        Preview
+                      </a>
+                      <a
+                        href={`/api/evidence/${item.evidenceId}/download`}
+                        download={item.fileName}
+                        className="inline-flex items-center gap-1 rounded-md border border-blue-300 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100"
+                      >
+                        <Download className="h-3 w-3" />
+                        Download
+                      </a>
+                    </>
+                  )}
+                  {canDelete && (
+                    <DeleteEvidenceButton
+                      evidenceId={item.evidenceId}
+                      fileName={item.fileName}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           </li>

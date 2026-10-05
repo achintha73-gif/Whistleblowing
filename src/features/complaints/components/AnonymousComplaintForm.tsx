@@ -3,6 +3,10 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Shield, AlertTriangle } from 'lucide-react';
+import {
+  EvidenceUploader,
+  type PendingFile,
+} from './EvidenceUploader';
 
 const CATEGORIES = [
   'Financial Fraud',
@@ -21,6 +25,7 @@ export function AnonymousComplaintForm() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
+  const [files, setFiles] = useState<PendingFile[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -40,14 +45,17 @@ export function AnonymousComplaintForm() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/anonymous/complaints', {
+      const fd = new FormData();
+      fd.append('title', title.trim());
+      fd.append('description', description.trim());
+      if (category) fd.append('category', category);
+      for (const pf of files) {
+        fd.append('files', pf.file);
+      }
+
+      const res = await fetch('/api/public/report', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: title.trim(),
-          description: description.trim(),
-          category: category || null,
-        }),
+        body: fd,
       });
 
       const data = await res.json();
@@ -107,7 +115,8 @@ export function AnonymousComplaintForm() {
           maxLength={200}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          disabled={loading}
+          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none disabled:bg-gray-50"
           placeholder="Brief summary of the issue"
         />
         <p className="mt-1 text-xs text-gray-500">
@@ -126,7 +135,8 @@ export function AnonymousComplaintForm() {
           id="category"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          disabled={loading}
+          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none disabled:bg-gray-50"
         >
           <option value="">Select a category (optional)</option>
           {CATEGORIES.map((c) => (
@@ -150,13 +160,17 @@ export function AnonymousComplaintForm() {
           rows={8}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          disabled={loading}
+          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none disabled:bg-gray-50"
           placeholder="Provide details about what happened, when, where, and any other relevant information. Avoid including details that could identify you."
         />
         <p className="mt-1 text-xs text-gray-500">
           {description.length} characters (minimum 20)
         </p>
       </div>
+
+      {/* Evidence upload */}
+      <EvidenceUploader files={files} onFilesChange={setFiles} />
 
       <div className="rounded-md border border-amber-200 bg-amber-50 p-3">
         <div className="flex items-start gap-2">

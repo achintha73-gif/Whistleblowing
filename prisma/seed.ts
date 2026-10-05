@@ -84,7 +84,6 @@ async function main() {
       roleName: 'ADMIN',
       departmentId: null,
     },
-    // Managers
     {
       name: 'Maria Manager',
       email: 'manager@wb.local',
@@ -99,7 +98,6 @@ async function main() {
       roleName: 'MANAGER',
       departmentId: departments['Operations'],
     },
-    // Investigators
     {
       name: 'Ivan Investigator',
       email: 'investigator@wb.local',
@@ -121,7 +119,6 @@ async function main() {
       roleName: 'INVESTIGATOR',
       departmentId: departments['Information Technology'],
     },
-    // Employees
     {
       name: 'Eve Employee',
       email: 'employee@wb.local',
@@ -301,7 +298,7 @@ async function main() {
   // -------------------------------------------------------------
   // 5. Cases (for CONVERTED_TO_CASE complaints)
   // -------------------------------------------------------------
-  const caseComplaintIndexes = [4, 5]; // Indexes of CONVERTED_TO_CASE complaints
+  const caseComplaintIndexes = [4, 5];
   const caseConfigs = [
     {
       priority: CasePriority.HIGH,
@@ -326,16 +323,11 @@ async function main() {
         priority: config.priority,
         status: config.status,
         assigned_investigator_id: userMap[config.investigatorEmail],
-        closed_at:
-          config.status === CaseStatus.CLOSED ||
-          config.status === CaseStatus.ARCHIVED
-            ? new Date()
-            : null,
+        closed_at: null,
       },
     });
     caseIds.push(created.case_id);
 
-    // Add status history entry
     await prisma.caseStatusHistory.create({
       data: {
         case_id: created.case_id,
@@ -347,7 +339,7 @@ async function main() {
   console.log(`✅ Cases seeded (${caseIds.length})`);
 
   // -------------------------------------------------------------
-  // 6. Additional Information (for some complaints)
+  // 6. Additional Information
   // -------------------------------------------------------------
   const additionalInfoToSeed = [
     {
@@ -398,24 +390,28 @@ async function main() {
       fileName: 'access-logs-august.csv',
       fileType: 'text/csv',
       description: 'Access logs showing unusual HR file activity in August.',
+      uploadedBy: 'investigator@wb.local',
     },
     {
       caseId: caseIds[0],
       fileName: 'incident-summary.pdf',
       fileType: 'application/pdf',
       description: 'Initial incident summary prepared by IT security.',
+      uploadedBy: 'investigator@wb.local',
     },
     {
       caseId: caseIds[1],
       fileName: 'safety-inspection-photo.jpg',
       fileType: 'image/jpeg',
       description: 'Photo of the warehouse on the claimed inspection date.',
+      uploadedBy: 'investigator2@wb.local',
     },
     {
       caseId: caseIds[1],
       fileName: 'inspection-schedule.xlsx',
       fileType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       description: 'Scheduled vs actual inspection dates comparison.',
+      uploadedBy: 'investigator2@wb.local',
     },
   ];
 
@@ -426,6 +422,7 @@ async function main() {
         file_name: e.fileName,
         file_type: e.fileType,
         description: e.description,
+        uploaded_by: userMap[e.uploadedBy],
       },
     });
   }

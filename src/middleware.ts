@@ -6,10 +6,10 @@ import { JWT_SECRET, AUTH_COOKIE_NAME } from '@/lib/auth-config';
  * Middleware - runs before every matching request.
  *
  * Responsibilities:
- *   1. Block unauthenticated access to /dashboard/*
- *   2. Redirect authenticated users away from /login
- *   3. Light JWT verification (signature + expiry only)
- *   4. Allow public anonymous access to /anonymous routes
+ *   1. Allow public routes (anonymous submission + tracking) without auth
+ *   2. Block unauthenticated access to /dashboard/*
+ *   3. Redirect authenticated users away from /login
+ *   4. Light JWT verification (signature + expiry only)
  */
 
 // Routes that require a valid session
@@ -18,8 +18,12 @@ const PROTECTED_PREFIXES = ['/dashboard'];
 // Routes that logged-in users should NOT see (redirect them away)
 const AUTH_ONLY_ROUTES = ['/login'];
 
-// Public routes that should NOT require authentication
-const PUBLIC_ROUTES = ['/anonymous'];
+// Public routes that do NOT require authentication
+const PUBLIC_ROUTES = [
+  '/report',
+  '/track',
+  '/anonymous',
+];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -31,7 +35,7 @@ export async function middleware(request: NextRequest) {
   // 1. Public routes - always allow (no auth required)
   // ---------------------------------------------------------
   const isPublic = PUBLIC_ROUTES.some((route) =>
-    pathname.startsWith(route)
+    pathname === route || pathname.startsWith(`${route}/`)
   );
 
   if (isPublic) {
@@ -49,7 +53,7 @@ export async function middleware(request: NextRequest) {
   // 3. Unauthenticated user tries protected route -> send to login
   // ---------------------------------------------------------
   const isProtected = PROTECTED_PREFIXES.some((prefix) =>
-    pathname.startsWith(prefix)
+    pathname === prefix || pathname.startsWith(`${prefix}/`)
   );
 
   if (isProtected && !isAuthenticated) {
@@ -79,6 +83,7 @@ async function verifyToken(token: string): Promise<boolean> {
 
 export const config = {
   matcher: [
+    // Skip API, Next.js internals, static files
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

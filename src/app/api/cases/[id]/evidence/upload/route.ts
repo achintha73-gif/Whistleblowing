@@ -5,18 +5,7 @@ import { randomUUID } from 'crypto';
 import { requireAuth, UnauthorizedError } from '@/lib/auth';
 import { addEvidenceWithFile } from '@/features/evidence/services/evidence.service';
 
-/**
- * POST /api/cases/:id/evidence/upload
- * Body: multipart/form-data with:
- *   - file: File
- *   - fileType: string ("Document" | "Image" | "Video" | ...)
- *   - description?: string
- *
- * Saves the file to /private-uploads/[uuid]-[sanitized-filename]
- * Creates a DB row with metadata + file_path.
- */
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 const ALLOWED_EXTENSIONS = [
   '.pdf', '.doc', '.docx', '.txt', '.csv', '.xlsx',
@@ -25,7 +14,6 @@ const ALLOWED_EXTENSIONS = [
 ];
 
 function sanitizeFileName(name: string): string {
-  // Remove path separators and unsafe chars
   return name
     .replace(/[\\/]/g, '_')
     .replace(/[^a-zA-Z0-9._-]/g, '_')
@@ -68,44 +56,37 @@ export async function POST(
 
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { error: `File too large. Maximum size is 5 MB.` },
+        { error: 'File too large. Maximum size is 5 MB.' },
         { status: 400 }
       );
     }
 
     if (file.size === 0) {
-      return NextResponse.json(
-        { error: 'File is empty' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'File is empty' }, { status: 400 });
     }
 
     const ext = getExtension(file.name);
     if (!ALLOWED_EXTENSIONS.includes(ext)) {
       return NextResponse.json(
-        {
-          error: `File type not allowed. Allowed: ${ALLOWED_EXTENSIONS.join(', ')}`,
-        },
+        { error: `File type not allowed. Allowed: ${ALLOWED_EXTENSIONS.join(', ')}` },
         { status: 400 }
       );
     }
 
-    // Generate unique file path
     const uuid = randomUUID();
     const safeName = sanitizeFileName(file.name);
     const storedName = `${uuid}-${safeName}`;
     const uploadDir = join(process.cwd(), 'private-uploads');
     const filePathOnDisk = join(uploadDir, storedName);
 
-    // Write file to disk
     const arrayBuffer = await file.arrayBuffer();
     await writeFile(filePathOnDisk, Buffer.from(arrayBuffer));
 
-    // Save metadata to DB
     const result = await addEvidenceWithFile(user, {
       caseId,
       fileName: file.name,
       fileType: fileType.trim(),
+      fileSize: file.size,
       description:
         typeof description === 'string' && description.trim()
           ? description.trim()
@@ -117,10 +98,7 @@ export async function POST(
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
-    return NextResponse.json(
-      { evidence: result.evidence },
-      { status: 201 }
-    );
+    return NextResponse.json({ evidence: result.evidence }, { status: 201 });
   } catch (err) {
     if (err instanceof UnauthorizedError) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });

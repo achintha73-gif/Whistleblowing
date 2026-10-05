@@ -2,12 +2,20 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { ComplaintStatusBadge } from '@/features/complaints/components/ComplaintStatusBadge';
-import { getComplaintForUser } from '@/features/complaints/services/complaint.service';
+import {
+  getComplaintForUser,
+  canDeleteComplaint,
+} from '@/features/complaints/services/complaint.service';
 import { AdditionalInfoList } from '@/features/complaints/components/AdditionalInfoList';
 import { AddAdditionalInfoForm } from '@/features/complaints/components/AddAdditionalInfoForm';
+import { getAdditionalInfoForComplaint } from '@/features/complaints/services/additional-info.service';
+import { EvidenceList } from '@/features/evidence/components/EvidenceList';
+import { AddComplaintEvidenceForm } from '@/features/evidence/components/AddComplaintEvidenceForm';
 import {
-  getAdditionalInfoForComplaint,
-} from '@/features/complaints/services/additional-info.service';
+  getEvidenceForComplaint,
+  canDeleteEvidence,
+} from '@/features/evidence/services/evidence.service';
+import { DeleteComplaintButton } from '@/features/complaints/components/DeleteComplaintButton';
 
 export default async function ComplaintDetailPage({
   params,
@@ -33,21 +41,39 @@ export default async function ComplaintDetailPage({
     complaintId
   );
 
-  // Only the complaint owner (non-anonymous) can add more info
+  const evidence = await getEvidenceForComplaint(user, complaintId);
+
+  // Compute which evidence can be deleted by this user
+  const deletableIds: number[] = [];
+  for (const ev of evidence) {
+    const allowed = await canDeleteEvidence(user, ev.evidenceId);
+    if (allowed) deletableIds.push(ev.evidenceId);
+  }
+
   const canAddInfo =
     user.roleName === 'USER' &&
     !complaint.isAnonymous &&
     complaint.author?.userId === user.userId;
 
+  const canAddEvidence = user.roleName === 'USER';
+
+  const canDelete = await canDeleteComplaint(user, complaintId);
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div>
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <Link
           href="/dashboard/complaints"
           className="text-sm font-medium text-gray-600 hover:text-gray-900"
         >
           &larr; Back to complaints
         </Link>
+        {canDelete && (
+          <DeleteComplaintButton
+            complaintId={complaint.complaintId}
+            complaintTitle={complaint.title}
+          />
+        )}
       </div>
 
       {/* Complaint header + details */}
@@ -114,6 +140,27 @@ export default async function ComplaintDetailPage({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Attached Evidence */}
+      <div className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <h2 className="text-sm font-semibold text-gray-700">
+            Attached Evidence ({evidence.length})
+          </h2>
+          {canAddEvidence && (
+            <AddComplaintEvidenceForm complaintId={complaintId} />
+          )}
+        </div>
+        {evidence.length === 0 ? (
+          <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-6 text-center">
+            <p className="text-sm text-gray-500">
+              No evidence attached to this complaint.
+            </p>
+          </div>
+        ) : (
+          <EvidenceList evidence={evidence} deletableIds={deletableIds} />
+        )}
       </div>
 
       {/* Additional Information */}
