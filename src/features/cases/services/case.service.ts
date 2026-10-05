@@ -393,3 +393,71 @@ export async function getManagerDashboardStats() {
     recentPending,
   };
 }
+
+// -------------------------------------------------------------
+// Investigator Dashboard Stats
+// -------------------------------------------------------------
+
+export async function getInvestigatorDashboardStats(userId: number) {
+  const [statusCounts, recentCases, evidenceCount, unreadNotifications] =
+    await Promise.all([
+      // Case counts by status for this investigator
+      prisma.case.groupBy({
+        by: ['status'],
+        where: { assigned_investigator_id: userId },
+        _count: { _all: true },
+      }),
+      // Recent assigned cases
+      prisma.case.findMany({
+        where: { assigned_investigator_id: userId },
+        take: 5,
+        orderBy: { updated_at: 'desc' },
+        include: {
+          complaint: {
+            select: {
+              complaint_id: true,
+              title: true,
+              category: true,
+              isAnonymous: true,
+            },
+          },
+        },
+      }),
+      // Total evidence across investigator's cases
+      prisma.evidence.count({
+        where: {
+          case: { assigned_investigator_id: userId },
+        },
+      }),
+      // Unread notifications
+      prisma.notification.count({
+        where: { user_id: userId, is_read: false },
+      }),
+    ]);
+
+  const byStatus: Record<string, number> = {};
+  statusCounts.forEach((r) => {
+    byStatus[r.status] = r._count._all;
+  });
+
+  const total = statusCounts.reduce((sum, r) => sum + r._count._all, 0);
+
+  return {
+    totalCases: total,
+    openCases: byStatus.OPEN ?? 0,
+    investigatingCases: byStatus.INVESTIGATING ?? 0,
+    pendingReviewCases: byStatus.PENDING_REVIEW ?? 0,
+    closedCases: (byStatus.CLOSED ?? 0) + (byStatus.ARCHIVED ?? 0),
+    evidenceCount,
+    unreadNotifications,
+    recentCases: recentCases.map((c) => ({
+      caseId: c.case_id,
+      complaintTitle: c.complaint.title,
+      category: c.complaint.category,
+      isAnonymous: c.complaint.isAnonymous,
+      status: c.status,
+      priority: c.priority,
+      updatedAt: c.updated_at,
+    })),
+  };
+}
