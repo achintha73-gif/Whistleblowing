@@ -13,7 +13,6 @@ import {
   getManagerForCase,
 } from '@/features/notifications/services/notification.service';
 
-
 // Prisma -> DTO mappers
 
 type PrismaCaseRow = {
@@ -306,6 +305,7 @@ export async function updateCaseStatusForUser(
 
   return { success: true };
 }
+
 // List Available Investigators
 
 export async function listAvailableInvestigators() {
@@ -323,9 +323,7 @@ export async function listAvailableInvestigators() {
   });
 }
 
-// -------------------------------------------------------------
 // Stats
-// -------------------------------------------------------------
 
 export async function getCaseStats() {
   const byStatus = await caseRepo.countCasesByStatus();
@@ -333,10 +331,65 @@ export async function getCaseStats() {
   return { total, byStatus };
 }
 
-// -------------------------------------------------------------
 // Status History
-// -------------------------------------------------------------
 
 export async function getCaseHistory(caseId: number) {
   return caseRepo.listStatusHistoryForCase(caseId);
+}
+
+// -------------------------------------------------------------
+// Manager Dashboard Stats
+// -------------------------------------------------------------
+
+export async function getManagerDashboardStats() {
+  const [complaintStats, caseStats, unassignedCases, recentPending] =
+    await Promise.all([
+      (async () => {
+        const rows = await prisma.complaint.groupBy({
+          by: ['status'],
+          _count: { _all: true },
+        });
+        const byStatus: Record<string, number> = {};
+        rows.forEach((r) => {
+          byStatus[r.status] = r._count._all;
+        });
+        const total = rows.reduce((sum, r) => sum + r._count._all, 0);
+        return { total, byStatus };
+      })(),
+      (async () => {
+        const rows = await prisma.case.groupBy({
+          by: ['status'],
+          _count: { _all: true },
+        });
+        const byStatus: Record<string, number> = {};
+        rows.forEach((r) => {
+          byStatus[r.status] = r._count._all;
+        });
+        const total = rows.reduce((sum, r) => sum + r._count._all, 0);
+        return { total, byStatus };
+      })(),
+      prisma.case.count({ where: { assigned_investigator_id: null } }),
+      prisma.complaint.findMany({
+        where: { status: 'PENDING' },
+        take: 5,
+        orderBy: { created_at: 'desc' },
+        select: {
+          complaint_id: true,
+          title: true,
+          category: true,
+          isAnonymous: true,
+          created_at: true,
+        },
+      }),
+    ]);
+
+  return {
+    totalComplaints: complaintStats.total,
+    pendingComplaints: complaintStats.byStatus.PENDING ?? 0,
+    totalCases: caseStats.total,
+    openCases: caseStats.byStatus.OPEN ?? 0,
+    investigatingCases: caseStats.byStatus.INVESTIGATING ?? 0,
+    unassignedCases,
+    recentPending,
+  };
 }
