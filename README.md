@@ -348,3 +348,148 @@ Each feature folder contains:
 - Higher cohesion, lower coupling
 - Features can be understood in isolation
 - Easier to test and maintain
+
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- **Node.js** 20+ ([download](https://nodejs.org/))
+- **npm** 10+
+- **MySQL** 8+ ([download](https://dev.mysql.com/downloads/installer/))
+- **Git** ([download](https://git-scm.com/))
+- **VS Code** (recommended)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/achintha73-gif/Whistleblowing.git
+   cd Whistleblowing
+
+2. **Install dependencies**
+    npm install
+
+3. **Set up environment variables (see Environment Variables)**
+
+4. **Create the MySQL database**
+  CREATE DATABASE whistleblowing_db
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+5. **Run Prisma migrations**
+    npx prisma migrate dev
+
+6. **Seed the database with demo data**
+    npx prisma db seed
+
+7. **Start the development server**
+   npm run dev
+
+8. **Open http://localhost:3000 in your browser**
+
+### Environment Variables
+# Database Connection
+DATABASE_URL="mysql://USER:PASSWORD@localhost:3306/whistleblowing_db"
+
+# NextAuth Configuration
+NEXTAUTH_SECRET="your-super-secret-key-change-this-in-production"
+NEXTAUTH_URL="http://localhost:3000"
+
+Generate a secure NEXTAUTH_SECRET: openssl rand -base64 32
+
+### Database Setup
+1. **Migrations** 
+   # Create a new migration after changing schema.prisma
+npx prisma migrate dev --name migration_name
+
+# Apply migrations in production
+npx prisma migrate deploy
+
+# Reset database (drops all data + re-applies migrations + re-seeds)
+npx prisma migrate reset --force
+
+
+### Project Structure
+whistleblowing-system/
+├── prisma/
+│   ├── schema.prisma           # Database schema (12 models, 6 enums)
+│   ├── seed.ts                 # Seed script
+│   └── migrations/             # Migration history
+│
+├── public/                     # Static assets
+│
+├── src/
+│   ├── app/                    # Next.js App Router
+│   │   ├── (auth)/             # Login, register
+│   │   ├── dashboard/          # Role-based dashboards
+│   │   │   ├── admin/
+│   │   │   ├── manager/
+│   │   │   ├── investigator/
+│   │   │   ├── user/
+│   │   │   ├── complaints/
+│   │   │   ├── cases/
+│   │   │   ├── evidence/
+│   │   │   ├── notifications/
+│   │   │   ├── settings/
+│   │   │   ├── logs/
+│   │   │   └── users/
+│   │   └── api/                # REST API route handlers
+│   │
+│   ├── features/               # Vertical slices (business features)
+│   │   ├── auth/
+│   │   ├── complaints/
+│   │   ├── cases/
+│   │   ├── investigation/
+│   │   ├── evidence/
+│   │   ├── notifications/
+│   │   └── users/
+│   │
+│   └── lib/
+│       ├── db.ts               # Prisma Client singleton
+│       ├── auth.ts             # NextAuth configuration
+│       └── validation.ts       # Zod schemas
+│
+├── .env                        # Environment variables (not committed)
+├── .gitignore
+├── package.json
+├── tsconfig.json
+├── next.config.ts
+├── postcss.config.mjs
+├── eslint.config.mjs
+└── README.md
+
+### API Endpoints
+
+Method	Endpoint	Description	Access
+POST	/api/auth/[...nextauth]	NextAuth sign in/out	Public
+GET	/api/complaints	List complaints	Auth
+POST	/api/complaints	Submit new complaint	USER
+GET	/api/complaints/:id	Get complaint details	Auth
+POST	/api/complaints/:id/additional-info	Add additional info	USER
+GET	/api/cases	List cases	MANAGER/INVESTIGATOR/ADMIN
+POST	/api/cases	Create case from complaint	MANAGER
+GET	/api/cases/:id	Get case details	MANAGER/INVESTIGATOR/ADMIN
+PATCH	/api/cases/:id/status	Update case status	MANAGER/INVESTIGATOR
+POST	/api/cases/:id/assign	Assign investigator	MANAGER
+GET	/api/evidence	List evidence	MANAGER/INVESTIGATOR
+POST	/api/evidence	Upload evidence	INVESTIGATOR
+GET	/api/notifications	List user notifications	Auth
+PATCH	/api/notifications/:id	Mark as read	Auth
+GET	/api/users	List users	ADMIN
+PATCH	/api/users/:id	Update user	ADMIN
+API endpoints are subject to change. Refer to the src/app/api/ directory for the current implementation.
+
+### Scripts
+Command	Description
+npm run dev	Start development server (http://localhost:3000)
+npm run build	Build for production
+npm run start	Start production server
+npm run lint	Run ESLint
+npx prisma migrate dev	Create & apply a new migration
+npx prisma migrate reset	Reset DB + re-run migrations + seed
+npx prisma db seed	Seed the database
+npx prisma studio	Open Prisma Studio (DB GUI)
+npx prisma generate	Regenerate Prisma Client

@@ -131,6 +131,7 @@ model Complaint {
   category     String?         @db.VarChar(100)
   status       ComplaintStatus @default(PENDING)
   isAnonymous  Boolean         @default(false)
+  reference_code String?         @unique @db.VarChar(20)
   user_id      Int?
   created_at   DateTime        @default(now())
   updated_at   DateTime        @updatedAt

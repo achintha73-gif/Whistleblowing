@@ -9,9 +9,7 @@ import { JWT_SECRET, AUTH_COOKIE_NAME } from '@/lib/auth-config';
  *   1. Block unauthenticated access to /dashboard/*
  *   2. Redirect authenticated users away from /login
  *   3. Light JWT verification (signature + expiry only)
- *
- * NOTE: This does NOT check the DB (Edge runtime has no Prisma).
- * The page itself will call getSession() to do a fresh DB check.
+ *   4. Allow public anonymous access to /anonymous routes
  */
 
 // Routes that require a valid session
@@ -20,22 +18,35 @@ const PROTECTED_PREFIXES = ['/dashboard'];
 // Routes that logged-in users should NOT see (redirect them away)
 const AUTH_ONLY_ROUTES = ['/login'];
 
+// Public routes that should NOT require authentication
+const PUBLIC_ROUTES = ['/anonymous'];
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
   const isAuthenticated = token ? await verifyToken(token) : false;
-  console.log('[MIDDLEWARE] path:', pathname, '| token exists:', !!token, '| auth:', isAuthenticated);
 
   // ---------------------------------------------------------
-  // 1. Logged-in user tries to visit /login -> send to dashboard
+  // 1. Public routes - always allow (no auth required)
+  // ---------------------------------------------------------
+  const isPublic = PUBLIC_ROUTES.some((route) =>
+    pathname.startsWith(route)
+  );
+
+  if (isPublic) {
+    return NextResponse.next();
+  }
+
+  // ---------------------------------------------------------
+  // 2. Logged-in user tries to visit /login -> send to dashboard
   // ---------------------------------------------------------
   if (AUTH_ONLY_ROUTES.includes(pathname) && isAuthenticated) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   // ---------------------------------------------------------
-  // 2. Unauthenticated user tries protected route -> send to login
+  // 3. Unauthenticated user tries protected route -> send to login
   // ---------------------------------------------------------
   const isProtected = PROTECTED_PREFIXES.some((prefix) =>
     pathname.startsWith(prefix)
@@ -52,7 +63,6 @@ export async function middleware(request: NextRequest) {
 
 /**
  * Minimal JWT verification - signature + expiry only.
- * Does NOT hit the database.
  */
 async function verifyToken(token: string): Promise<boolean> {
   try {
@@ -67,10 +77,6 @@ async function verifyToken(token: string): Promise<boolean> {
   }
 }
 
-/**
- * Which routes this middleware runs on.
- * - Skip static files, images, Next.js internals, API (API does its own checks)
- */
 export const config = {
   matcher: [
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
