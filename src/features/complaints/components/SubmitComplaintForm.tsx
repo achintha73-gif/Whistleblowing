@@ -10,8 +10,10 @@ import {
   Send,
   ShieldCheck,
   EyeOff,
+  Loader2,
 } from 'lucide-react';
 import { COMPLAINT_CATEGORIES } from '../types';
+import { EvidenceUploader, type PendingFile } from './EvidenceUploader';
 
 type TabType = 'details' | 'anonymous';
 
@@ -22,8 +24,36 @@ export function SubmitComplaintForm() {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [files, setFiles] = useState<PendingFile[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
+
+  async function uploadFiles(complaintId: number): Promise<number> {
+    let uploaded = 0;
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      setUploadStatus(
+        `Uploading file ${i + 1} of ${files.length}: ${f.file.name}`
+      );
+
+      const fd = new FormData();
+      fd.append('file', f.file);
+      fd.append('description', '');
+
+      const res = await fetch(`/api/complaints/${complaintId}/evidence`, {
+        method: 'POST',
+        body: fd,
+      });
+
+      if (res.ok) {
+        uploaded++;
+      } else {
+        console.error(`Failed to upload ${f.file.name}`);
+      }
+    }
+    return uploaded;
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -41,8 +71,10 @@ export function SubmitComplaintForm() {
     }
 
     setLoading(true);
+    setUploadStatus(null);
 
     try {
+      // Step 1: Create the complaint
       const res = await fetch('/api/complaints', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -59,19 +91,35 @@ export function SubmitComplaintForm() {
       if (!res.ok) {
         setError(data.error || 'Failed to submit complaint');
         setLoading(false);
+        setUploadStatus(null);
         return;
       }
 
-      router.push(`/dashboard/complaints/${data.complaint.complaintId}`);
+      const complaintId = data.complaint.complaintId;
+
+      // Step 2: Upload any attached files
+      if (files.length > 0) {
+        const uploaded = await uploadFiles(complaintId);
+        if (uploaded < files.length) {
+          // Partial failure - complaint still created
+          console.warn(
+            `Only ${uploaded}/${files.length} files uploaded successfully`
+          );
+        }
+      }
+
+      router.push(`/dashboard/complaints/${complaintId}`);
       router.refresh();
     } catch {
       setError('Network error. Please try again.');
       setLoading(false);
+      setUploadStatus(null);
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Error */}
       {error && (
         <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm text-red-700">
           <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
@@ -79,6 +127,15 @@ export function SubmitComplaintForm() {
         </div>
       )}
 
+      {/* Upload status */}
+      {uploadStatus && (
+        <div className="flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 p-3.5 text-sm text-blue-700">
+          <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+          <span>{uploadStatus}</span>
+        </div>
+      )}
+
+      {/* Tab Switcher */}
       <div className="grid grid-cols-2 gap-1 rounded-xl bg-gray-100/80 p-1 backdrop-blur-sm">
         <button
           type="button"
@@ -109,8 +166,10 @@ export function SubmitComplaintForm() {
         </button>
       </div>
 
+      {/* Tab 1: Details */}
       {activeTab === 'details' && (
         <div className="space-y-4">
+          {/* Title */}
           <div>
             <label
               htmlFor="title"
@@ -133,6 +192,7 @@ export function SubmitComplaintForm() {
             </p>
           </div>
 
+          {/* Category */}
           <div>
             <label
               htmlFor="category"
@@ -155,6 +215,7 @@ export function SubmitComplaintForm() {
             </select>
           </div>
 
+          {/* Description */}
           <div>
             <label
               htmlFor="description"
@@ -177,16 +238,21 @@ export function SubmitComplaintForm() {
             </p>
           </div>
 
+          {/* Evidence Uploader */}
+          <EvidenceUploader files={files} onFilesChange={setFiles} />
+
+          {/* Info hint */}
           <div className="flex items-start gap-2.5 rounded-xl border border-blue-200 bg-blue-50/70 p-3.5 backdrop-blur-sm">
             <Info className="h-4 w-4 mt-0.5 shrink-0 text-blue-600" />
             <p className="text-xs text-blue-800">
-              Be as detailed and specific as possible. Include dates, times,
-              locations, and people involved to help us investigate effectively.
+              Be as detailed and specific as possible. You can also attach
+              supporting documents, images, or screenshots as evidence.
             </p>
           </div>
         </div>
       )}
 
+      {/* Tab 2: Anonymous */}
       {activeTab === 'anonymous' && (
         <div className="space-y-4">
           <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-5">
@@ -207,6 +273,7 @@ export function SubmitComplaintForm() {
             </div>
           </div>
 
+          {/* Toggle */}
           <div
             className={`rounded-xl border-2 p-5 transition-all ${
               isAnonymous
@@ -256,6 +323,7 @@ export function SubmitComplaintForm() {
             </label>
           </div>
 
+          {/* Info cards */}
           <div className="space-y-2">
             <div className="flex items-start gap-2.5 rounded-xl border border-green-200 bg-green-50/70 p-3.5">
               <ShieldCheck className="h-4 w-4 mt-0.5 shrink-0 text-green-600" />
@@ -276,11 +344,13 @@ export function SubmitComplaintForm() {
         </div>
       )}
 
+      {/* Actions */}
       <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-4">
         <button
           type="button"
           onClick={() => router.back()}
-          className="rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+          disabled={loading}
+          className="rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
         >
           Cancel
         </button>
@@ -289,8 +359,17 @@ export function SubmitComplaintForm() {
           disabled={loading}
           className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:from-blue-700 hover:to-indigo-700 hover:shadow-md disabled:from-blue-400 disabled:to-indigo-400 disabled:cursor-not-allowed"
         >
-          <Send className="h-4 w-4" />
-          {loading ? 'Submitting...' : 'Submit Complaint'}
+          {loading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {uploadStatus ? 'Uploading...' : 'Submitting...'}
+            </>
+          ) : (
+            <>
+              <Send className="h-4 w-4" />
+              Submit Complaint
+            </>
+          )}
         </button>
       </div>
     </form>

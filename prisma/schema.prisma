@@ -115,6 +115,7 @@ model User {
   notifications       Notification[]
   systemSettings      SystemSetting[]
   assignedCases       Case[]                  @relation("AssignedInvestigator")
+  uploadedEvidence    Evidence[]              @relation("UploadedEvidence")
   passwordResetTokens PasswordResetToken[]
 
   @@index([role_id])
@@ -125,20 +126,21 @@ model User {
 
 // Complaint Model
 model Complaint {
-  complaint_id Int             @id @default(autoincrement())
-  title        String          @db.VarChar(200)
-  description  String          @db.Text
-  category     String?         @db.VarChar(100)
-  status       ComplaintStatus @default(PENDING)
-  isAnonymous  Boolean         @default(false)
+  complaint_id   Int             @id @default(autoincrement())
+  title          String          @db.VarChar(200)
+  description    String          @db.Text
+  category       String?         @db.VarChar(100)
+  status         ComplaintStatus @default(PENDING)
+  isAnonymous    Boolean         @default(false)
   reference_code String?         @unique @db.VarChar(20)
-  user_id      Int?
-  created_at   DateTime        @default(now())
-  updated_at   DateTime        @updatedAt
+  user_id        Int?
+  created_at     DateTime        @default(now())
+  updated_at     DateTime        @updatedAt
 
   user           User?                   @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
   additionalInfo AdditionalInformation[]
   case           Case?
+  evidence       Evidence[]
 
   @@index([user_id])
   @@index([status])
@@ -205,17 +207,25 @@ model CaseStatusHistory {
 
 // Evidence Model
 model Evidence {
-  evidence_id Int      @id @default(autoincrement())
-  file_name   String   @db.VarChar(255)
-  file_type   String   @db.VarChar(150)
-  description String?  @db.Text
-  uploaded_at DateTime @default(now())
-  file_path   String?  @db.VarChar(500)
-  case_id     Int
+  evidence_id  Int      @id @default(autoincrement())
+  file_name    String   @db.VarChar(255)
+  file_type    String   @db.VarChar(150)
+  file_path    String?   @db.VarChar(500)
+  file_size    Int?
+  description  String?  @db.Text
+  uploaded_at  DateTime @default(now())
 
-  case Case @relation(fields: [case_id], references: [case_id], onDelete: Cascade)
+  case_id      Int?
+  complaint_id Int?
+  uploaded_by  Int?
+
+  case      Case?      @relation(fields: [case_id], references: [case_id], onDelete: Cascade)
+  complaint Complaint? @relation(fields: [complaint_id], references: [complaint_id], onDelete: Cascade)
+  uploader  User?      @relation("UploadedEvidence", fields: [uploaded_by], references: [user_id], onDelete: SetNull)
 
   @@index([case_id])
+  @@index([complaint_id])
+  @@index([uploaded_by])
   @@map("evidence")
 }
 

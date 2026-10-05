@@ -415,16 +415,16 @@ npx prisma migrate reset --force
 ### Project Structure
 whistleblowing-system/
 ├── prisma/
-│   ├── schema.prisma           # Database schema (12 models, 6 enums)
-│   ├── seed.ts                 # Seed script
-│   └── migrations/             # Migration history
+│   ├── schema.prisma           
+│   ├── seed.ts                 
+│   └── migrations/             
 │
-├── public/                     # Static assets
+├── public/                    
 │
 ├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── (auth)/             # Login, register
-│   │   ├── dashboard/          # Role-based dashboards
+│   ├── app/                    
+│   │   ├── (auth)/             
+│   │   ├── dashboard/          
 │   │   │   ├── admin/
 │   │   │   ├── manager/
 │   │   │   ├── investigator/
@@ -436,9 +436,9 @@ whistleblowing-system/
 │   │   │   ├── settings/
 │   │   │   ├── logs/
 │   │   │   └── users/
-│   │   └── api/                # REST API route handlers
+│   │   └── api/                
 │   │
-│   ├── features/               # Vertical slices (business features)
+│   ├── features/               
 │   │   ├── auth/
 │   │   ├── complaints/
 │   │   ├── cases/
@@ -448,11 +448,11 @@ whistleblowing-system/
 │   │   └── users/
 │   │
 │   └── lib/
-│       ├── db.ts               # Prisma Client singleton
-│       ├── auth.ts             # NextAuth configuration
-│       └── validation.ts       # Zod schemas
+│       ├── db.ts               
+│       ├── auth.ts             
+│       └── validation.ts       
 │
-├── .env                        # Environment variables (not committed)
+├── .env                        
 ├── .gitignore
 ├── package.json
 ├── tsconfig.json

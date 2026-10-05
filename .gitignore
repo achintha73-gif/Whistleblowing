@@ -45,3 +45,6 @@ next-env.d.ts
 # Uploaded evidence (private, accessed via API only)
 /private-uploads/*
 !/private-uploads/.gitkeep
+
+# Uploaded files
+public/uploads/
