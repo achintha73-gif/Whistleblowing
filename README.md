@@ -1,10 +1,48 @@
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
-![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
-![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
-![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
-## Research Report
+# Whistleblowing Management System
+
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=next.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-6-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+
+A full-stack **Whistleblowing Management System** that provides a secure, structured platform for employees to report unethical or illegal activities within an organization, and for managers, investigators, and administrators to manage, investigate, and resolve those reports.
+
+Built with **Next.js (App Router)**, **TypeScript**, **MySQL**, **Prisma ORM**, **Tailwind CSS**, and **NextAuth** using **Vertical Slice Architecture**.
+
+---
+
+## 📋 Table of Contents
+
+- [Research Report](#-research-report)
+  - [Abstract](#abstract)
+  - [1. Introduction](#1-introduction)
+  - [2. Objectives](#2-objectives)
+  - [3. Main Users](#3-main-users)
+  - [4. Main System Functions](#4-main-system-functions)
+  - [5. System Design](#5-system-design)
+  - [6. ER Diagram](#6-er-diagram)
+  - [7. Context Diagram](#7-context-diagram)
+  - [8. Class Diagram](#8-class-diagram)
+  - [9. Security and Confidentiality](#9-security-and-confidentiality)
+  - [10. Benefits of the Proposed System](#10-benefits-of-the-proposed-system)
+  - [11. Conclusion](#11-conclusion)
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Architecture](#-architecture)
+- [Getting Started](#-getting-started)
+- [Environment Variables](#-environment-variables)
+- [Database Setup](#-database-setup)
+- [Test Credentials](#-test-credentials)
+- [Project Structure](#-project-structure)
+- [API Endpoints](#-api-endpoints)
+- [Scripts](#-scripts)
+- [License](#-license)
+
+---
+
+## 📖 Research Report
 
 ### Abstract
 
@@ -14,7 +52,7 @@ This research focuses on the design of a Whistleblowing Management System that s
 
 ---
 
-## 1. Introduction
+### 1. Introduction
 
 Organizations may face different types of unethical activities, including fraud, corruption, misuse of confidential information, harassment, and violations of organizational policies. Employees may hesitate to report such incidents because of confidentiality concerns, fear of retaliation, or the lack of a proper reporting process.
 
@@ -22,7 +60,7 @@ A Whistleblowing Management System can provide a centralized platform where comp
 
 ---
 
-## 2. Objectives
+### 2. Objectives
 
 The main objectives of the proposed system are:
 
@@ -39,31 +77,32 @@ The main objectives of the proposed system are:
 
 ---
 
-## 3. Main Users
+### 3. Main Users
 
-The main users of the system are:
-
-### Employee / Whistleblower
-- Submit complaints
+#### Employee / Whistleblower
+- Submit complaints (anonymous or identified)
 - Provide additional information
 - View complaint status
 - Receive investigation updates and notifications
 
-### Manager
+#### Manager
 - Review complaints
 - Review case information
 - Provide feedback
-- Monitor relevant reports
+- Assign investigators to cases
+- Monitor case progress
 
-### Investigator
+#### Investigator / Compliance Officer
 - View assigned cases
 - Investigate cases
 - Analyze case data
 - Collect and upload evidence
 - Generate investigation reports
+- Update case status
 - Notify the whistleblower about relevant investigation updates
+- Close cases
 
-### System Administrator
+#### System Administrator
 - Manage users
 - Configure system settings
 - Manage roles and permissions
@@ -71,12 +110,10 @@ The main users of the system are:
 
 ---
 
-## 4. Main System Functions
-
-The main functions of the system include:
+### 4. Main System Functions
 
 - User Authentication
-- Complaint Submission
+- Complaint Submission (anonymous or identified)
 - Complaint Management
 - Additional Information Management
 - Case Management
@@ -94,7 +131,7 @@ The main functions of the system include:
 
 ---
 
-## 5. System Design
+### 5. System Design
 
 The system design was developed using UML and database modelling techniques.
 
@@ -105,14 +142,9 @@ The main diagrams included in the research are:
 - ER Diagram
 - Class Diagram
 
-These diagrams help to identify the system requirements, users, data entities, relationships, and object-oriented structure.
-
 ---
 
-## 6. ER Diagram
-
-<img width="1600" height="1357" alt="WhatsApp Image 2026-09-25 at 13 05 54" src="https://github.com/user-attachments/assets/55bddd45-7554-4b7a-92f1-fc773ab6b520" />
-
+### 6. ER Diagram
 
 The Entity Relationship Diagram represents the main database entities and their relationships.
 
@@ -133,21 +165,20 @@ Main entities include:
 - Notification
 - System Setting
 
-The ER diagram is designed to maintain relationships between complaints, cases, investigators, evidence, additional information, and investigation reports.
 ---
 
-## 7. Context Diagram
+### 7. Context Diagram
 
 The Context Diagram shows the main external users and their interaction with the Whistleblowing Management System.
 
-The main external entities are:
+Main external entities:
 
 - Employee / Whistleblower
 - Manager
 - Investigator
 - System Administrator
 
-Main data flows include:
+Main data flows:
 
 - Submit Complaint
 - Provide Additional Information
@@ -164,76 +195,156 @@ Main data flows include:
 
 ---
 
-## 8. Class Diagram
+### 8. Class Diagram
 
-The Class Diagram represents the main classes and their relationships within the system.
+The Class Diagram represents the main classes and their relationships.
 
-Main classes include:
+Main classes: User, Employee, Manager, Investigator, System Administrator, Role, Complaint, Case, Evidence, Additional Information, Investigation Report, Case Status History, Notification, System Setting, Department.
 
-- User
-- Employee
-- Manager
-- Investigator
-- System Administrator
-- Role
-- Complaint
-- Case
-- Evidence
-- Additional Information
-- Investigation Report
-- Case Status History
-- Notification
-- System Setting
-- Department
+---
 
-9. Security and Confidentiality
+### 9. Security and Confidentiality
 
-Security and confidentiality are important aspects of a whistleblowing system. The system should restrict access to sensitive information based on user roles and permissions.
+Security and confidentiality are important aspects of a whistleblowing system. The system restricts access to sensitive information based on user roles and permissions.
 
-Important security considerations include:
+Important security considerations:
 
-* Authentication
-* Role-Based Access Control
-* Password protection
-* Confidential complaint information
-* Controlled access to evidence
-* Secure case management
-* System activity logging
-* Notification security
+- Authentication (NextAuth with session-based auth)
+- Role-Based Access Control (RBAC)
+- Password hashing (bcrypt, 12 rounds)
+- Confidential complaint information
+- Controlled access to evidence
+- Secure case management
+- System activity logging
+- Notification security
+- Server-side validation (Zod)
 
-⸻
+---
 
-10. Benefits of the Proposed System
+### 10. Benefits of the Proposed System
 
-The proposed system can provide several benefits:
+- Centralized complaint management
+- Structured investigation process
+- Better case tracking
+- Secure evidence management
+- Improved communication
+- Faster access to case information
+- Better accountability through system logs
+- Improved confidentiality
+- Easier generation of investigation reports
 
-* Centralized complaint management
-* Structured investigation process
-* Better case tracking
-* Secure evidence management
-* Improved communication
-* Faster access to case information
-* Better accountability through system logs
-* Improved confidentiality
-* Easier generation of investigation reports
+---
 
-⸻
-
-11. Conclusion
+### 11. Conclusion
 
 The proposed Whistleblowing Management System provides a structured approach to handling whistleblowing complaints and investigations. It supports complaint submission, case management, investigation, evidence collection, additional information, notifications, and administrative activities.
 
-The UML diagrams and ER diagram provide a clear understanding of the system structure and database relationships. The proposed design can be further developed into a web-based system using modern frontend and backend technologies.
+The UML diagrams and ER diagram provide a clear understanding of the system structure and database relationships.
 
-⸻
+---
 
-Technologies
+## ✨ Features
 
-Frontend       → Next.js
-Backend/API    → Next.js API Routes
-Database       → MySQL
-ORM            → Prisma
-Language       → TypeScript
-Architecture   → Vertical Slice Architecture
-Authentication → NextAuth/Auth.js or custom authentication
+### 🔐 Authentication & Authorization
+- Secure login with NextAuth (session-based)
+- Password hashing with bcrypt (12 rounds)
+- Role-based access control (RBAC) — `ADMIN`, `MANAGER`, `INVESTIGATOR`, `USER`
+- Protected routes with middleware
+- Sign out & session management
 
+### 📝 Complaint Management
+- Submit complaints (anonymous or identified)
+- Categorize complaints (Fraud, Harassment, Data Protection, etc.)
+- View complaint status and history
+- Provide additional information to complaints
+- Manager review workflow (`PENDING → UNDER_REVIEW → APPROVED/REJECTED → CONVERTED_TO_CASE`)
+
+### 📁 Case Management
+- Convert approved complaints into cases
+- Assign investigators to cases
+- Track case status (`OPEN → INVESTIGATING → PENDING_REVIEW → CLOSED/ARCHIVED`)
+- Set case priority (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`)
+- Complete case status history (audit trail)
+
+### 🔍 Investigation
+- Investigator dashboard with assigned cases
+- Collect and upload evidence (files)
+- Analyse case data
+- Generate investigation reports
+- Close cases with recommendations
+- Automatic notifications to managers & whistleblowers
+
+### 📎 Evidence Management
+- Upload files (PDF, images, spreadsheets, etc.)
+- File metadata tracking (name, type, description)
+- Evidence linked to specific cases
+
+### 🔔 Notifications
+- In-app notifications for key events
+- Read/unread status
+- Role-aware notification routing
+- Badge counter in the header
+
+### 👥 User Management (Admin)
+- View, search, filter users
+- Update user roles and statuses
+- Activate / suspend users
+- Manage departments
+- View system activity log
+
+### ⚙️ System Settings (Admin)
+- Configure site name
+- Enable/disable anonymous complaints
+- Configure default case priority
+- Password policy (minimum length)
+- Complaint retention period
+- Email notification toggle
+
+### 📊 Dashboards
+- **Employee** — My complaints, status overview, submit new
+- **Manager** — Complaints review queue, cases, unassigned cases, recent complaints
+- **Investigator** — Assigned cases, evidence count, unread notifications, recent cases
+- **Admin** — User stats, department stats, quick links, activity log
+
+### 🎨 UI/UX
+- Modern, responsive design with Tailwind CSS
+- Gradient stat cards
+- Time-based greetings
+- Empty states & loading states
+- Accessible navigation
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Technology |
+| :--- | :--- |
+| **Framework** | [Next.js 16](https://nextjs.org/) (App Router) |
+| **Language** | [TypeScript 5](https://www.typescriptlang.org/) |
+| **UI Library** | [React 19](https://react.dev/) |
+| **Styling** | [Tailwind CSS 4](https://tailwindcss.com/) |
+| **Icons** | [Lucide React](https://lucide.dev/) |
+| **Database** | [MySQL 8](https://www.mysql.com/) |
+| **ORM** | [Prisma 6](https://www.prisma.io/) |
+| **Authentication** | [NextAuth.js 4](https://next-auth.js.org/) |
+| **Password Hashing** | [bcryptjs](https://github.com/dcodeIO/bcrypt.js) |
+| **Validation** | [Zod](https://zod.dev/) |
+| **Dev Tooling** | [tsx](https://github.com/privatenumber/tsx) (for seed script) |
+
+---
+
+## 🏗 Architecture
+
+This project uses **Vertical Slice Architecture** — code is organized by **business feature**, not by technical layer.
+
+Each feature folder contains:
+- `components/` — feature-specific UI components
+- `services/` — business logic
+- `repository/` — database access (Prisma queries)
+- `types.ts` — TypeScript types / interfaces
+
+**Benefits:**
+- Easier to navigate
+- Higher cohesion, lower coupling
+- Features can be understood in isolation
+- Easier to test and maintain
