@@ -1,4 +1,4 @@
-# Whistleblowing Management System
+# 🛡️ Whistleblowing Management System
 
 ![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=next.js&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
@@ -9,11 +9,11 @@
 
 A full-stack **Whistleblowing Management System** that provides a secure, structured platform for employees to report unethical or illegal activities within an organization, and for managers, investigators, and administrators to manage, investigate, and resolve those reports.
 
-Built with **Next.js (App Router)**, **TypeScript**, **MySQL**, **Prisma ORM**, **Tailwind CSS**, and **NextAuth** using **Vertical Slice Architecture**.
+Built with **Next.js (App Router)**, **TypeScript**, **MySQL**, **Prisma ORM**, **Tailwind CSS**, and **Custom JWT authentication** using **Vertical Slice Architecture**.
 
 ---
 
-## 📋 Table of Contents
+## 📖 Table of Contents
 
 - [Research Report](#-research-report)
   - [Abstract](#abstract)
@@ -42,7 +42,7 @@ Built with **Next.js (App Router)**, **TypeScript**, **MySQL**, **Prisma ORM**, 
 
 ---
 
-## 📖 Research Report
+## 📘 Research Report
 
 ### Abstract
 
@@ -209,15 +209,17 @@ Security and confidentiality are important aspects of a whistleblowing system. T
 
 Important security considerations:
 
-- Authentication (NextAuth with session-based auth)
-- Role-Based Access Control (RBAC)
-- Password hashing (bcrypt, 12 rounds)
-- Confidential complaint information
-- Controlled access to evidence
-- Secure case management
-- System activity logging
-- Notification security
-- Server-side validation (Zod)
+- **Authentication** — Custom JWT (signed with HS256 via `jose`), stored in HttpOnly cookies
+- **Password hashing** — bcryptjs (10 rounds)
+- **Role-Based Access Control (RBAC)** — enforced in middleware + service layer
+- **Confidential complaint information** — anonymous complaints never linked to user identity
+- **Controlled access to evidence** — download API requires authentication
+- **Secure case management** — atomic Prisma transactions
+- **System activity logging** — unified audit timeline
+- **Notification security** — only recipient can view/mark their notifications
+- **Server-side validation** — Zod schemas for all inputs
+- **Password reset** — SHA-256 hashed tokens, 1-hour expiry, one-time use
+- **Email enumeration protection** — password reset API always returns success
 
 ---
 
@@ -240,47 +242,49 @@ Important security considerations:
 The proposed Whistleblowing Management System provides a structured approach to handling whistleblowing complaints and investigations. It supports complaint submission, case management, investigation, evidence collection, additional information, notifications, and administrative activities.
 
 The UML diagrams and ER diagram provide a clear understanding of the system structure and database relationships.
-
 ---
 
 ## ✨ Features
 
 ### 🔐 Authentication & Authorization
-- Secure login with NextAuth (session-based)
-- Password hashing with bcrypt (12 rounds)
-- Role-based access control (RBAC) — `ADMIN`, `MANAGER`, `INVESTIGATOR`, `USER`
-- Protected routes with middleware
-- Sign out & session management
+- Custom JWT authentication (signed with jose, HS256)
+- HttpOnly, secure cookies
+- 4 roles: Employee, Manager, Investigator, Admin
+- Role-Based Access Control (RBAC) in middleware + service layer
+- Password reset via email (SHA-256 hashed tokens, 1-hour expiry, one-time use)
+- Email enumeration protection
 
 ### 📝 Complaint Management
-- Submit complaints (anonymous or identified)
-- Categorize complaints (Fraud, Harassment, Data Protection, etc.)
-- View complaint status and history
-- Provide additional information to complaints
-- Manager review workflow (`PENDING → UNDER_REVIEW → APPROVED/REJECTED → CONVERTED_TO_CASE`)
+- Submit complaints with optional evidence attachments
+- Anonymous submission - no login required, returns a WB-XXXX-XXXX reference code
+- Category tagging (Fraud, Financial, Corruption, Harassment, Discrimination, Safety, Ethics, Abuse of Power, Other)
+- Status flow: PENDING -> UNDER_REVIEW -> APPROVED / REJECTED / CONVERTED_TO_CASE
+- Additional information threads (both logged-in and anonymous users)
+- Delete rules (USER: own PENDING only; MANAGER: PENDING/REJECTED; ADMIN: all except CONVERTED)
 
-### 📁 Case Management
-- Convert approved complaints into cases
+### 🗂️ Case Management
+- Managers convert approved complaints into cases (atomic Prisma transactions)
 - Assign investigators to cases
-- Track case status (`OPEN → INVESTIGATING → PENDING_REVIEW → CLOSED/ARCHIVED`)
-- Set case priority (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`)
+- Track case status (OPEN -> INVESTIGATING -> PENDING_REVIEW -> CLOSED / ARCHIVED)
+- Set case priority (LOW, MEDIUM, HIGH, CRITICAL)
 - Complete case status history (audit trail)
 
 ### 🔍 Investigation
 - Investigator dashboard with assigned cases
-- Collect and upload evidence (files)
-- Analyse case data
-- Generate investigation reports
+- Collect and upload evidence (files, 5 MB max per file)
+- Generate investigation reports (findings + recommendation)
 - Close cases with recommendations
 - Automatic notifications to managers & whistleblowers
 
 ### 📎 Evidence Management
-- Upload files (PDF, images, spreadsheets, etc.)
-- File metadata tracking (name, type, description)
-- Evidence linked to specific cases
+- Real file uploads (PDF, images, docs, videos)
+- Stored in private-uploads/ (gitignored)
+- Download API with authentication check
+- Employees can upload evidence to their own complaints
+- Employees can delete their own evidence (if complaint not yet converted)
 
 ### 🔔 Notifications
-- In-app notifications for key events
+- In-app notifications for key events (assignment, evidence, status change, report)
 - Read/unread status
 - Role-aware notification routing
 - Badge counter in the header
@@ -290,65 +294,70 @@ The UML diagrams and ER diagram provide a clear understanding of the system stru
 - Update user roles and statuses
 - Activate / suspend users
 - Manage departments
-- View system activity log
 
 ### ⚙️ System Settings (Admin)
-- Configure site name
-- Enable/disable anonymous complaints
-- Configure default case priority
-- Password policy (minimum length)
-- Complaint retention period
-- Email notification toggle
+- Configure site name, support email, max upload size
+- Editable and persisted
 
-### 📊 Dashboards
-- **Employee** — My complaints, status overview, submit new
-- **Manager** — Complaints review queue, cases, unassigned cases, recent complaints
-- **Investigator** — Assigned cases, evidence count, unread notifications, recent cases
-- **Admin** — User stats, department stats, quick links, activity log
+### 📊 Activity Log (Admin)
+- Unified timeline of all system events
+- Search + filter by event type
+- Pagination
+
+### 📈 Dashboards
+- Employee - My complaints, status overview, submit new
+- Manager - Complaints review queue, cases, unassigned cases
+- Investigator - Assigned cases, evidence count, unread notifications
+- Admin - User stats, department stats, quick links, activity log
 
 ### 🎨 UI/UX
-- Modern, responsive design with Tailwind CSS
-- Gradient stat cards
+- Glassmorphism design - gradient backgrounds, backdrop blur, soft shadows
+- Modern sidebar with gradient active states
+- Responsive layout (mobile-friendly)
 - Time-based greetings
+- Lucide icons throughout
+- Modern login page with Employee / Anonymous tabs
 - Empty states & loading states
-- Accessible navigation
 
 ---
 
-## 🛠 Tech Stack
+## 🧰 Tech Stack
 
 | Layer | Technology |
 | :--- | :--- |
-| **Framework** | [Next.js 16](https://nextjs.org/) (App Router) |
-| **Language** | [TypeScript 5](https://www.typescriptlang.org/) |
-| **UI Library** | [React 19](https://react.dev/) |
-| **Styling** | [Tailwind CSS 4](https://tailwindcss.com/) |
-| **Icons** | [Lucide React](https://lucide.dev/) |
-| **Database** | [MySQL 8](https://www.mysql.com/) |
-| **ORM** | [Prisma 6](https://www.prisma.io/) |
-| **Authentication** | [NextAuth.js 4](https://next-auth.js.org/) |
-| **Password Hashing** | [bcryptjs](https://github.com/dcodeIO/bcrypt.js) |
-| **Validation** | [Zod](https://zod.dev/) |
-| **Dev Tooling** | [tsx](https://github.com/privatenumber/tsx) (for seed script) |
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript 5 |
+| UI Library | React 19 |
+| Styling | Tailwind CSS 4 |
+| Icons | Lucide React |
+| Database | MySQL 8 |
+| ORM | Prisma 6 |
+| Authentication | Custom JWT (jose) + HttpOnly cookies |
+| Password Hashing | bcryptjs |
+| Validation | Zod |
+| Email (dev) | Nodemailer + Ethereal SMTP |
+| CAPTCHA | react-google-recaptcha |
+| Dev Tooling | tsx (for seed script) |
 
 ---
 
-## 🏗 Architecture
+## 🏛️ Architecture
 
-This project uses **Vertical Slice Architecture** — code is organized by **business feature**, not by technical layer.
+This project uses Vertical Slice Architecture - code is organized by business feature, not by technical layer.
 
 Each feature folder contains:
-- `components/` — feature-specific UI components
-- `services/` — business logic
-- `repository/` — database access (Prisma queries)
-- `types.ts` — TypeScript types / interfaces
 
-**Benefits:**
+- components/ - feature-specific UI components
+- services/ - business logic
+- repository/ - database access (Prisma queries)
+- types.ts - TypeScript types / interfaces
+
+Benefits:
+
 - Easier to navigate
 - Higher cohesion, lower coupling
 - Features can be understood in isolation
 - Easier to test and maintain
-
 
 ---
 
@@ -356,53 +365,85 @@ Each feature folder contains:
 
 ### Prerequisites
 
-- **Node.js** 20+ ([download](https://nodejs.org/))
-- **npm** 10+
-- **MySQL** 8+ ([download](https://dev.mysql.com/downloads/installer/))
-- **Git** ([download](https://git-scm.com/))
-- **VS Code** (recommended)
+- Node.js 20+ (https://nodejs.org/)
+- npm 10+
+- MySQL 8+ (https://dev.mysql.com/downloads/installer/)
+- Git (https://git-scm.com/)
+- VS Code (recommended)
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
+1. Clone the repository
+
    git clone https://github.com/achintha73-gif/Whistleblowing.git
    cd Whistleblowing
 
-2. **Install dependencies**
-    npm install
+2. Install dependencies
 
-3. **Set up environment variables (see Environment Variables)**
+   npm install
 
-4. **Create the MySQL database**
-  CREATE DATABASE whistleblowing_db
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
+3. Set up environment variables (see Environment Variables section below)
 
-5. **Run Prisma migrations**
-    npx prisma migrate dev
+4. Create the MySQL database
 
-6. **Seed the database with demo data**
-    npx prisma db seed
+   CREATE DATABASE whistleblowing_db
+     CHARACTER SET utf8mb4
+     COLLATE utf8mb4_unicode_ci;
 
-7. **Start the development server**
+5. Run Prisma migrations
+
+   npx prisma migrate dev
+
+6. Seed the database with demo data
+
+   npx prisma db seed
+
+7. Start the development server
+
    npm run dev
 
-8. **Open http://localhost:3000 in your browser**
+8. Open http://localhost:3000 in your browser
 
-### Environment Variables
-# Database Connection
+---
+
+## 🔑 Environment Variables
+
+Create a .env file in the project root:
+
+# Database
 DATABASE_URL="mysql://USER:PASSWORD@localhost:3306/whistleblowing_db"
 
-# NextAuth Configuration
-NEXTAUTH_SECRET="your-super-secret-key-change-this-in-production"
-NEXTAUTH_URL="http://localhost:3000"
+# JWT (Custom authentication)
+JWT_SECRET="your-long-random-secret-here"
 
-Generate a secure NEXTAUTH_SECRET: openssl rand -base64 32
+# Node environment
+NODE_ENV="development"
 
-### Database Setup
-1. **Migrations** 
-   # Create a new migration after changing schema.prisma
+# SMTP (Ethereal for development)
+SMTP_HOST=smtp.ethereal.email
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-ethereal-user@ethereal.email
+SMTP_PASS=your-ethereal-password
+SMTP_FROM=your-ethereal-user@ethereal.email
+
+# App
+APP_URL=http://localhost:3000
+PASSWORD_RESET_EXPIRY_SECONDS=3600
+
+Generate a secure JWT_SECRET:
+
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+
+Get free Ethereal credentials: https://ethereal.email
+
+---
+
+## 🗄️ Database Setup
+
+### Migrations
+
+# Create a new migration after changing schema.prisma
 npx prisma migrate dev --name migration_name
 
 # Apply migrations in production
@@ -411,48 +452,87 @@ npx prisma migrate deploy
 # Reset database (drops all data + re-applies migrations + re-seeds)
 npx prisma migrate reset --force
 
+### Regenerate Prisma Client
 
-### Project Structure
+# Warning: Close VS Code first on Windows (EPERM error)
+npx prisma generate
+
+### View data with Prisma Studio
+
+npx prisma studio
+
+---
+
+## 🔐 Test Credentials
+
+After running `npx prisma db seed`, the following accounts are available:
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@wb.local | Admin@12345 |
+| Manager 1 | manager@wb.local | Manager@12345 |
+| Manager 2 | manager2@wb.local | Manager@12345 |
+| Investigator 1 | investigator@wb.local | Investigator@12345 |
+| Investigator 2 | investigator2@wb.local | Investigator@12345 |
+| Investigator 3 | investigator3@wb.local | Investigator@12345 |
+| Employee 1 | employee@wb.local | Employee@12345 |
+| Employee 2 | employee2@wb.local | Employee@12345 |
+| Employee 3 | employee3@wb.local | Employee@12345 |
+| Employee 4 | employee4@wb.local | Employee@12345 |
+| Employee 5 | employee5@wb.local | Employee@12345 |
+
+### Anonymous Flow (no login required)
+
+1. Visit /report - public anonymous submission form
+2. Submit complaint with optional evidence
+3. Receive a reference code (format: WB-XXXX-XXXX, no ambiguous characters)
+4. Save the code - you will need it to track progress
+5. Visit /track - enter the code to view status
+6. Add additional information at /track/[code]
+
+---
+
+## 📁 Project Structure
+
 whistleblowing-system/
 ├── prisma/
-│   ├── schema.prisma           
-│   ├── seed.ts                 
-│   └── migrations/             
-│
-├── public/                    
-│
+│   ├── schema.prisma           All models
+│   ├── seed.ts                 Test data (11 users + complaints + cases)
+│   └── migrations/             Migration history
+├── public/                     Static assets
 ├── src/
-│   ├── app/                    
-│   │   ├── (auth)/             
-│   │   ├── dashboard/          
-│   │   │   ├── admin/
-│   │   │   ├── manager/
-│   │   │   ├── investigator/
-│   │   │   ├── user/
-│   │   │   ├── complaints/
-│   │   │   ├── cases/
-│   │   │   ├── evidence/
-│   │   │   ├── notifications/
-│   │   │   ├── settings/
-│   │   │   ├── logs/
-│   │   │   └── users/
-│   │   └── api/                
-│   │
-│   ├── features/               
-│   │   ├── auth/
-│   │   ├── complaints/
-│   │   ├── cases/
-│   │   ├── investigation/
-│   │   ├── evidence/
-│   │   ├── notifications/
-│   │   └── users/
-│   │
-│   └── lib/
-│       ├── db.ts               
-│       ├── auth.ts             
-│       └── validation.ts       
-│
-├── .env                        
+│   ├── app/                    Next.js App Router
+│   │   ├── (auth)/             Login, forgot/reset password
+│   │   ├── report/             Public anonymous submission
+│   │   ├── track/              Public reference-code tracking
+│   │   ├── anonymous/          Success page with code
+│   │   ├── dashboard/          Protected area (sidebar + glass layout)
+│   │   │   ├── admin, manager, investigator, user
+│   │   │   ├── complaints, cases, evidence
+│   │   │   ├── notifications, profile, support
+│   │   │   └── users, settings, logs
+│   │   └── api/                REST API routes
+│   │       ├── auth/
+│   │       ├── complaints/
+│   │       ├── cases/
+│   │       ├── evidence/
+│   │       ├── users/
+│   │       ├── settings/
+│   │       ├── notifications/
+│   │       ├── public/report/
+│   │       └── anonymous/
+│   ├── features/               Vertical Slice Architecture
+│   │   ├── auth, complaints, cases, evidence, investigation
+│   │   ├── notifications, users, settings, logs
+│   ├── lib/
+│   │   ├── auth.ts             getSession, requireAuth, requireRole
+│   │   ├── auth-config.ts      JWT_SECRET, SMTP, APP_URL
+│   │   ├── db.ts               Prisma singleton
+│   │   ├── validation.ts       Zod schemas
+│   │   └── reference-code.ts   WB-XXXX-XXXX generator
+│   └── middleware.ts           Route protection + public routes
+├── private-uploads/            Uploaded evidence (gitignored)
+├── .env                        Environment variables (gitignored)
 ├── .gitignore
 ├── package.json
 ├── tsconfig.json
@@ -461,35 +541,91 @@ whistleblowing-system/
 ├── eslint.config.mjs
 └── README.md
 
-### API Endpoints
+---
 
-Method	Endpoint	Description	Access
-POST	/api/auth/[...nextauth]	NextAuth sign in/out	Public
-GET	/api/complaints	List complaints	Auth
-POST	/api/complaints	Submit new complaint	USER
-GET	/api/complaints/:id	Get complaint details	Auth
-POST	/api/complaints/:id/additional-info	Add additional info	USER
-GET	/api/cases	List cases	MANAGER/INVESTIGATOR/ADMIN
-POST	/api/cases	Create case from complaint	MANAGER
-GET	/api/cases/:id	Get case details	MANAGER/INVESTIGATOR/ADMIN
-PATCH	/api/cases/:id/status	Update case status	MANAGER/INVESTIGATOR
-POST	/api/cases/:id/assign	Assign investigator	MANAGER
-GET	/api/evidence	List evidence	MANAGER/INVESTIGATOR
-POST	/api/evidence	Upload evidence	INVESTIGATOR
-GET	/api/notifications	List user notifications	Auth
-PATCH	/api/notifications/:id	Mark as read	Auth
-GET	/api/users	List users	ADMIN
-PATCH	/api/users/:id	Update user	ADMIN
-API endpoints are subject to change. Refer to the src/app/api/ directory for the current implementation.
+## 🔌 API Endpoints
 
-### Scripts
-Command	Description
-npm run dev	Start development server (http://localhost:3000)
-npm run build	Build for production
-npm run start	Start production server
-npm run lint	Run ESLint
-npx prisma migrate dev	Create & apply a new migration
-npx prisma migrate reset	Reset DB + re-run migrations + seed
-npx prisma db seed	Seed the database
-npx prisma studio	Open Prisma Studio (DB GUI)
-npx prisma generate	Regenerate Prisma Client
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| POST | /api/auth/login | Sign in | Public |
+| POST | /api/auth/logout | Sign out | Auth |
+| GET | /api/auth/me | Current user | Auth |
+| POST | /api/auth/forgot-password | Request reset link | Public |
+| POST | /api/auth/reset-password | Reset password | Public |
+| GET | /api/complaints | List complaints | Auth |
+| POST | /api/complaints | Submit new complaint | USER |
+| GET | /api/complaints/:id | Complaint details | Auth |
+| DELETE | /api/complaints/:id | Delete complaint | Owner / MANAGER / ADMIN |
+| POST | /api/complaints/:id/additional-info | Add additional info | Auth |
+| POST | /api/complaints/upload | Upload evidence to complaint | USER |
+| GET | /api/cases | List cases | MANAGER / INVESTIGATOR / ADMIN |
+| POST | /api/cases | Create case from complaint | MANAGER |
+| GET | /api/cases/:id | Case details | MANAGER / INVESTIGATOR / ADMIN |
+| PATCH | /api/cases/:id/status | Update case status | MANAGER / INVESTIGATOR |
+| POST | /api/cases/:id/assign | Assign investigator | MANAGER |
+| GET | /api/evidence/:id/download | Download file | Auth |
+| POST | /api/public/report | Anonymous complaint submission | Public |
+| GET | /api/anonymous/complaints/:code | Fetch by reference code | Public |
+| POST | /api/anonymous/additional-info | Add info via code | Public |
+| GET | /api/notifications | List user notifications | Auth |
+| PATCH | /api/notifications/:id/read | Mark as read | Auth |
+| GET | /api/users | List users | ADMIN |
+| PATCH | /api/users/:id | Update user | ADMIN |
+| GET | /api/settings | Get system settings | ADMIN |
+| PATCH | /api/settings | Update settings | ADMIN |
+
+API endpoints are subject to change. Refer to src/app/api/ for the current implementation.
+
+---
+
+## 🧪 Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| npm run dev | Start development server (http://localhost:3000) |
+| npm run build | Build for production |
+| npm run start | Start production server |
+| npm run lint | Run ESLint |
+| npx tsc --noEmit | Type-check the project |
+| npx prisma migrate dev | Create & apply a new migration |
+| npx prisma migrate reset | Reset DB + re-run migrations + seed |
+| npx prisma db seed | Seed the database |
+| npx prisma studio | Open Prisma Studio (DB GUI) |
+| npx prisma generate | Regenerate Prisma Client |
+
+---
+
+## 📸 Screenshots
+
+Add screenshots of the following pages to the project report:
+
+| Page | Path |
+|------|------|
+| Login (Employee / Anonymous tabs) | /login |
+| Employee Dashboard | /dashboard/user |
+| Manager Dashboard | /dashboard/manager |
+| Investigator Dashboard | /dashboard/investigator |
+| Admin Dashboard | /dashboard/admin |
+| Complaint List (filters + search) | /dashboard/complaints |
+| Case List (filters + search) | /dashboard/cases |
+| Case Detail (evidence + report + timeline) | /dashboard/cases/[id] |
+| Activity Log | /dashboard/logs |
+| Support Page | /dashboard/support |
+| Anonymous Report Form | /report |
+| Track Complaint | /track |
+
+---
+
+## 📝 License
+
+This project is a university coursework submission. Not licensed for commercial use.
+
+---
+
+## 👤 Author
+
+Achintha - https://github.com/achintha73-gif
+
+---
+
+> Warning: This is a university project built for learning purposes. In production, additional security measures (HTTPS, rate limiting, cloud file storage, 2FA, etc.) would be required.
