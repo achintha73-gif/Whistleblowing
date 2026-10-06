@@ -94,7 +94,8 @@ export function DashboardSidebar({
   const pathname = usePathname();
   const sections = MENU_BY_ROLE[roleName] ?? [];
   const isSupportActive =
-    pathname === '/support' || pathname.startsWith('/support/');
+    pathname === '/dashboard/support' ||
+    pathname.startsWith('/dashboard/support/');
   const isProfileActive =
     pathname === '/dashboard/profile' || pathname.startsWith('/dashboard/profile/');
 
@@ -191,7 +192,7 @@ export function DashboardSidebar({
         </Link>
 
         <Link
-          href="/support"
+          href="/dashboard/support"
           className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
             isSupportActive
               ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30'

@@ -87,7 +87,6 @@ export function ActivityLogTable({ entries }: { entries: LogEntry[] }) {
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Filter + search
   const filtered = useMemo(() => {
     return entries.filter((e) => {
       if (activeFilters.size > 0 && !activeFilters.has(e.type)) return false;
@@ -105,7 +104,6 @@ export function ActivityLogTable({ entries }: { entries: LogEntry[] }) {
     });
   }, [entries, search, activeFilters]);
 
-  // Pagination
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
   const startIdx = (safePage - 1) * pageSize;
@@ -130,12 +128,12 @@ export function ActivityLogTable({ entries }: { entries: LogEntry[] }) {
 
   return (
     <div className="space-y-4">
-      {/* Toolbar */}
-      <div className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4">
-        {/* Search + Add filter */}
+      {/* Toolbar — glass */}
+      <div className="flex flex-col gap-3 rounded-2xl border border-white/60 bg-white/60 p-4 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
+        {/* Search + Clear */}
         <div className="flex items-center gap-3 flex-wrap">
           <div className="relative flex-1 min-w-[240px]">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="Search activity..."
@@ -144,14 +142,14 @@ export function ActivityLogTable({ entries }: { entries: LogEntry[] }) {
                 setSearch(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full rounded-md border border-gray-300 pl-9 pr-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-xl border border-gray-200 bg-white/70 py-2.5 pl-10 pr-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10"
             />
           </div>
           {hasFilters && (
             <button
               type="button"
               onClick={clearAll}
-              className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white/70 px-3.5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-white hover:text-gray-900"
             >
               <X className="h-3.5 w-3.5" />
               Clear
@@ -161,7 +159,7 @@ export function ActivityLogTable({ entries }: { entries: LogEntry[] }) {
 
         {/* Filter chips */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
             Filter:
           </span>
           {FILTER_ORDER.map((type) => {
@@ -175,8 +173,8 @@ export function ActivityLogTable({ entries }: { entries: LogEntry[] }) {
                 onClick={() => toggleFilter(type)}
                 className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition ${
                   active
-                    ? 'border-blue-300 bg-blue-50 text-blue-700'
-                    : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                    ? 'border-blue-500 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25'
+                    : 'border-gray-200 bg-white/70 text-gray-600 hover:bg-white hover:text-gray-900'
                 }`}
               >
                 <Icon className="h-3 w-3" />
@@ -188,30 +186,30 @@ export function ActivityLogTable({ entries }: { entries: LogEntry[] }) {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+      {/* Table — glass */}
+      <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/60 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="border-b border-white/60 bg-white/40">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   Date and Time
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   Type
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   Actor
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   Event
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-gray-500">
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                   &nbsp;
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-white/50">
               {paginated.length === 0 ? (
                 <tr>
                   <td
@@ -226,14 +224,17 @@ export function ActivityLogTable({ entries }: { entries: LogEntry[] }) {
                   const meta = TYPE_META[entry.type];
                   const Icon = meta.icon;
                   return (
-                    <tr key={entry.id} className="hover:bg-gray-50 group">
+                    <tr
+                      key={entry.id}
+                      className="group transition hover:bg-white/60"
+                    >
                       <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
                         {formatDateTime(entry.timestamp)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <div
-                            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${meta.color}`}
+                            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${meta.color} transition-transform group-hover:scale-110`}
                           >
                             <Icon className="h-3.5 w-3.5" />
                           </div>
@@ -272,10 +273,10 @@ export function ActivityLogTable({ entries }: { entries: LogEntry[] }) {
                         {entry.linkTo ? (
                           <Link
                             href={entry.linkTo}
-                            className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800"
+                            className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 transition hover:text-blue-800"
                           >
                             View
-                            <ArrowRight className="h-3 w-3" />
+                            <ArrowRight className="h-3 w-3 transition group-hover:translate-x-0.5" />
                           </Link>
                         ) : (
                           <span className="text-xs text-gray-300">—</span>
@@ -289,8 +290,8 @@ export function ActivityLogTable({ entries }: { entries: LogEntry[] }) {
           </table>
         </div>
 
-        {/* Pagination */}
-        <div className="flex items-center justify-between gap-3 border-t border-gray-200 bg-white px-4 py-3 flex-wrap">
+        {/* Pagination — glass */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/60 bg-white/40 px-4 py-3">
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <span>Rows per page:</span>
             <select
@@ -299,7 +300,7 @@ export function ActivityLogTable({ entries }: { entries: LogEntry[] }) {
                 setPageSize(Number(e.target.value));
                 setCurrentPage(1);
               }}
-              className="rounded-md border border-gray-300 px-2 py-1 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
+              className="rounded-xl border border-gray-200 bg-white/70 px-2.5 py-1.5 text-sm text-gray-900 transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10"
             >
               <option value={10}>10</option>
               <option value={25}>25</option>
@@ -321,7 +322,7 @@ export function ActivityLogTable({ entries }: { entries: LogEntry[] }) {
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={safePage <= 1}
-                className="rounded-md border border-gray-300 bg-white p-1.5 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+                className="rounded-xl border border-gray-200 bg-white/70 p-2 text-gray-600 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronLeft className="h-3.5 w-3.5" />
               </button>
@@ -331,7 +332,7 @@ export function ActivityLogTable({ entries }: { entries: LogEntry[] }) {
                   setCurrentPage((p) => Math.min(totalPages, p + 1))
                 }
                 disabled={safePage >= totalPages}
-                className="rounded-md border border-gray-300 bg-white p-1.5 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+                className="rounded-xl border border-gray-200 bg-white/70 p-2 text-gray-600 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>
