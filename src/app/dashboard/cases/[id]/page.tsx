@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
+import { ArrowLeft } from 'lucide-react';
 import { CaseStatusBadge } from '@/features/cases/components/CaseStatusBadge';
 import { CasePriorityBadge } from '@/features/cases/components/CasePriorityBadge';
 import { CaseStatusTimeline } from '@/features/cases/components/CaseStatusTimeline';
@@ -55,20 +56,20 @@ export default async function CaseDetailPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link
-          href="/dashboard/cases"
-          className="text-sm font-medium text-gray-600 hover:text-gray-900"
-        >
-          &larr; Back to cases
-        </Link>
-      </div>
+      {/* Back link */}
+      <Link
+        href="/dashboard/cases"
+        className="group inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 transition hover:text-blue-600"
+      >
+        <ArrowLeft className="h-3.5 w-3.5 transition group-hover:-translate-x-0.5" />
+        Back to cases
+      </Link>
 
-      {/* Header */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      {/* Header — glass */}
+      <div className="rounded-2xl border border-white/60 bg-white/60 p-6 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
               {caseDetail.complaintTitle}
             </h1>
             <div className="mt-2 flex items-center gap-2 flex-wrap">
@@ -81,9 +82,9 @@ export default async function CaseDetailPage({
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm border-t border-gray-200 pt-4">
+        <div className="mt-6 grid grid-cols-1 gap-4 border-t border-white/60 pt-4 text-sm sm:grid-cols-2">
           <div>
-            <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            <div className="text-xs font-semibold uppercase tracking-wider text-gray-500">
               Created
             </div>
             <div className="mt-1 text-gray-900">
@@ -94,7 +95,7 @@ export default async function CaseDetailPage({
             </div>
           </div>
           <div>
-            <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            <div className="text-xs font-semibold uppercase tracking-wider text-gray-500">
               Last Updated
             </div>
             <div className="mt-1 text-gray-900">
@@ -105,7 +106,7 @@ export default async function CaseDetailPage({
             </div>
           </div>
           <div>
-            <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            <div className="text-xs font-semibold uppercase tracking-wider text-gray-500">
               Closed
             </div>
             <div className="mt-1 text-gray-900">
@@ -118,7 +119,7 @@ export default async function CaseDetailPage({
             </div>
           </div>
           <div>
-            <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            <div className="text-xs font-semibold uppercase tracking-wider text-gray-500">
               Assigned Investigator
             </div>
             <div className="mt-1 text-gray-900">
@@ -139,24 +140,24 @@ export default async function CaseDetailPage({
         </div>
       </div>
 
-      {/* Complaint */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="text-sm font-semibold text-gray-700 mb-2">
+      {/* Complaint — glass */}
+      <div className="rounded-2xl border border-white/60 bg-white/60 p-6 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
+        <h2 className="mb-2 text-sm font-semibold text-gray-700">
           Complaint Details
         </h2>
-        <div className="flex items-center gap-2 flex-wrap text-xs text-gray-500 mb-3">
+        <div className="mb-3 flex items-center gap-2 flex-wrap text-xs text-gray-500">
           {caseDetail.complaintCategory && (
-            <span className="rounded-md bg-gray-100 px-2 py-0.5">
+            <span className="rounded-md bg-white/70 px-2 py-0.5">
               {caseDetail.complaintCategory}
             </span>
           )}
           {caseDetail.complaintIsAnonymous && (
-            <span className="rounded-full bg-gray-100 px-2 py-0.5 font-medium text-gray-700">
+            <span className="rounded-full bg-white/70 px-2 py-0.5 font-medium text-gray-700">
               Anonymous
             </span>
           )}
         </div>
-        <p className="whitespace-pre-wrap text-sm text-gray-800 leading-relaxed">
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">
           {caseDetail.complaintDescription}
         </p>
       </div>
@@ -179,9 +180,9 @@ export default async function CaseDetailPage({
         />
       )}
 
-      {/* Evidence */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+      {/* Evidence — glass */}
+      <div className="rounded-2xl border border-white/60 bg-white/60 p-6 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
+        <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
           <h2 className="text-sm font-semibold text-gray-700">
             Evidence ({evidence.length})
           </h2>
@@ -190,8 +191,8 @@ export default async function CaseDetailPage({
         <EvidenceList evidence={evidence} />
       </div>
 
-      {/* Investigation Report */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      {/* Investigation Report — glass */}
+      <div className="rounded-2xl border border-white/60 bg-white/60 p-6 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
         <ReportPanel
           caseId={caseDetail.caseId}
           report={report}
@@ -199,9 +200,9 @@ export default async function CaseDetailPage({
         />
       </div>
 
-      {/* Timeline */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="text-sm font-semibold text-gray-700 mb-4">
+      {/* Timeline — glass */}
+      <div className="rounded-2xl border border-white/60 bg-white/60 p-6 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
+        <h2 className="mb-4 text-sm font-semibold text-gray-700">
           Status History
         </h2>
         <CaseStatusTimeline history={history} />

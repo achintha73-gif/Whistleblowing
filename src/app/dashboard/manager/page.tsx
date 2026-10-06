@@ -29,7 +29,6 @@ export default async function ManagerDashboardPage() {
   const data = await getManagerDashboardData();
   const greeting = getGreeting();
 
-  // Compute some derived metrics
   const reviewRate =
     data.totalComplaints > 0
       ? Math.round(
@@ -44,7 +43,7 @@ export default async function ManagerDashboardPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
             {greeting}, {user.name} 👋
           </h1>
           <p className="mt-1 text-sm text-gray-600">
@@ -54,7 +53,7 @@ export default async function ManagerDashboardPage() {
 
         <Link
           href="/dashboard/complaints"
-          className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 shadow-sm transition shrink-0"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-blue-500/30 transition hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-500/40 shrink-0"
         >
           <Plus className="h-4 w-4" />
           Review Complaints
@@ -101,9 +100,9 @@ export default async function ManagerDashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column: Recent Pending Complaints */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-            {/* Section header with tabs */}
-            <div className="border-b border-gray-100 px-5 py-4">
+          <div className="rounded-2xl border border-white/60 bg-white/60 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
+            {/* Section header */}
+            <div className="border-b border-white/60 px-5 py-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">
@@ -129,7 +128,7 @@ export default async function ManagerDashboardPage() {
             <div className="p-4">
               {data.recentPending.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mb-3">
+                  <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
                     <TrendingUp className="h-7 w-7" />
                   </div>
                   <p className="text-sm font-semibold text-gray-900">
@@ -156,8 +155,8 @@ export default async function ManagerDashboardPage() {
 
         {/* Right column: Quick Actions */}
         <div className="space-y-4">
-          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <div className="border-b border-gray-100 px-5 py-4">
+          <div className="rounded-2xl border border-white/60 bg-white/60 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
+            <div className="border-b border-white/60 px-5 py-4">
               <h2 className="text-base font-semibold text-gray-900">
                 Quick Actions
               </h2>
@@ -191,7 +190,7 @@ export default async function ManagerDashboardPage() {
           </div>
 
           {/* Workload summary */}
-          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-5">
+          <div className="rounded-2xl border border-white/60 bg-white/60 shadow-lg shadow-blue-900/5 backdrop-blur-xl p-5">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">
               Workload Summary
             </h3>
@@ -238,7 +237,7 @@ function QuickAction({
   return (
     <Link
       href={href}
-      className="group flex items-start gap-3 rounded-xl p-3 transition hover:bg-gray-50"
+      className="group flex items-start gap-3 rounded-xl p-3 transition hover:bg-white/60"
     >
       <div
         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${accent}`}

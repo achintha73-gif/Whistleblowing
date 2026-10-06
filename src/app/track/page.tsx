@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Shield } from 'lucide-react';
+import { Shield, FileText, ArrowRight } from 'lucide-react';
 import { TrackCodeForm } from '@/features/complaints/components/TrackCodeForm';
 
 export const metadata = {
@@ -8,55 +8,71 @@ export const metadata = {
 
 export default function TrackPage() {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="border-b border-gray-200 bg-white">
+    <div className="relative flex min-h-screen flex-col bg-gradient-to-br from-blue-100 via-purple-100 to-gray-100">
+      {/* Decorative blobs */}
+      <div className="pointer-events-none fixed -top-40 -right-40 h-96 w-96 rounded-full bg-purple-300/30 blur-3xl" />
+      <div className="pointer-events-none fixed -bottom-40 -left-40 h-96 w-96 rounded-full bg-blue-300/30 blur-3xl" />
+
+      {/* Header — glass */}
+      <header className="sticky top-0 z-30 border-b border-white/60 bg-white/40 backdrop-blur-xl">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-3">
-          <Link href="/" className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-blue-600" />
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 shadow-md shadow-blue-500/30">
+              <Shield className="h-4.5 w-4.5 text-white" strokeWidth={2.5} />
+            </div>
             <span className="text-lg font-semibold text-gray-900">
               Whistleblowing System
             </span>
           </Link>
           <Link
             href="/login"
-            className="text-sm font-medium text-gray-600 hover:text-gray-900"
+            className="text-sm font-medium text-gray-600 transition hover:text-blue-600"
           >
             Sign in
           </Link>
         </div>
       </header>
 
-      <main className="flex-1">
+      {/* Main */}
+      <main className="relative z-10 flex-1">
         <div className="mx-auto max-w-lg px-6 py-12">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">
+          <div className="mb-8 flex flex-col items-center text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30">
+              <FileText className="h-7 w-7 text-white" strokeWidth={2.5} />
+            </div>
+            <h1 className="mt-4 text-2xl font-bold tracking-tight text-gray-900">
               Track your complaint
             </h1>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 max-w-sm text-sm text-gray-600">
               Enter the reference code you received when you submitted your
               complaint.
             </p>
           </div>
 
-          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <TrackCodeForm />
+          <div className="relative overflow-hidden rounded-3xl border border-white/60 bg-white/60 p-6 shadow-xl shadow-blue-900/5 backdrop-blur-xl sm:p-8">
+            <div className="pointer-events-none absolute -top-20 -right-20 h-48 w-48 rounded-full bg-blue-300/20 blur-3xl" />
+            <div className="relative">
+              <TrackCodeForm />
+            </div>
           </div>
 
-          <div className="mt-6 text-center text-xs text-gray-500">
+          <div className="mt-6 text-center text-xs text-gray-600">
             Don&apos;t have a code?{' '}
             <Link
               href="/report"
-              className="font-medium text-blue-600 hover:text-blue-700"
+              className="inline-flex items-center gap-1 font-medium text-blue-600 transition hover:text-blue-700"
             >
               Submit a new complaint
+              <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
         </div>
       </main>
 
-      <footer className="border-t border-gray-200 bg-white">
-        <div className="mx-auto max-w-3xl px-6 py-3 text-xs text-gray-500">
-          Whistleblowing Management System - University Project
+      {/* Footer — glass */}
+      <footer className="relative z-10 border-t border-white/60 bg-white/40 backdrop-blur-xl">
+        <div className="mx-auto max-w-3xl px-6 py-3 text-xs text-gray-600">
+          Whistleblowing Management System
         </div>
       </footer>
     </div>

@@ -29,7 +29,6 @@ export default async function InvestigatorDashboardPage() {
   const stats = await getInvestigatorDashboardStats(user.userId);
   const greeting = getGreeting();
 
-  // Compute completion rate for the mini-metric
   const completionRate =
     stats.totalCases > 0
       ? Math.round((stats.closedCases / stats.totalCases) * 100)
@@ -40,7 +39,7 @@ export default async function InvestigatorDashboardPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
             {greeting}, {user.name} 👋
           </h1>
           <p className="mt-1 text-sm text-gray-600">
@@ -50,7 +49,7 @@ export default async function InvestigatorDashboardPage() {
 
         <Link
           href="/dashboard/cases"
-          className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 shadow-sm transition shrink-0"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-blue-500/30 transition hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-500/40 shrink-0"
         >
           <FolderOpen className="h-4 w-4" />
           View My Cases
@@ -97,9 +96,9 @@ export default async function InvestigatorDashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column: Recent cases */}
         <div className="lg:col-span-2">
-          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="rounded-2xl border border-white/60 bg-white/60 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
             {/* Section header */}
-            <div className="border-b border-gray-100 px-5 py-4">
+            <div className="border-b border-white/60 px-5 py-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">
@@ -125,7 +124,7 @@ export default async function InvestigatorDashboardPage() {
             <div className="p-4">
               {stats.recentCases.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mb-3">
+                  <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
                     <CheckCircle className="h-7 w-7" />
                   </div>
                   <p className="text-sm font-semibold text-gray-900">
@@ -141,23 +140,23 @@ export default async function InvestigatorDashboardPage() {
                     <li key={c.caseId}>
                       <Link
                         href={`/dashboard/cases/${c.caseId}`}
-                        className="group flex items-start gap-3 rounded-xl border border-gray-100 p-3 hover:border-blue-300 hover:bg-blue-50/30 transition"
+                        className="group flex items-start gap-3 rounded-xl border border-white/60 bg-white/50 p-3 transition hover:border-blue-300 hover:bg-white/80"
                       >
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 group-hover:bg-blue-100">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-600 transition group-hover:bg-blue-200">
                           <FolderOpen className="h-5 w-5" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="text-sm font-semibold text-gray-900 truncate">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="truncate text-sm font-semibold text-gray-900">
                               {c.complaintTitle}
                             </h3>
                             {c.isAnonymous && (
-                              <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
+                              <span className="shrink-0 rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-medium text-gray-600">
                                 Anonymous
                               </span>
                             )}
                           </div>
-                          <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+                          <div className="mt-1.5 flex flex-wrap items-center gap-2">
                             <CaseStatusBadge status={c.status as CaseStatus} />
                             <CasePriorityBadge
                               priority={c.priority as CasePriority}
@@ -189,8 +188,8 @@ export default async function InvestigatorDashboardPage() {
         {/* Right column: quick actions + summary */}
         <div className="space-y-4">
           {/* Quick actions */}
-          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <div className="border-b border-gray-100 px-5 py-4">
+          <div className="rounded-2xl border border-white/60 bg-white/60 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
+            <div className="border-b border-white/60 px-5 py-4">
               <h2 className="text-base font-semibold text-gray-900">
                 Quick Actions
               </h2>
@@ -198,7 +197,7 @@ export default async function InvestigatorDashboardPage() {
                 Jump to your tools
               </p>
             </div>
-            <div className="p-3 space-y-2">
+            <div className="space-y-2 p-3">
               <QuickAction
                 href="/dashboard/cases"
                 title="My Cases"
@@ -224,8 +223,8 @@ export default async function InvestigatorDashboardPage() {
           </div>
 
           {/* Workload summary */}
-          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+          <div className="rounded-2xl border border-white/60 bg-white/60 p-5 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
+            <h3 className="mb-3 text-sm font-semibold text-gray-900">
               Case Progress
             </h3>
             <div className="space-y-3">
@@ -254,7 +253,7 @@ export default async function InvestigatorDashboardPage() {
                 color="bg-emerald-500"
               />
             </div>
-            <div className="mt-4 pt-3 border-t border-gray-100">
+            <div className="mt-4 border-t border-white/60 pt-3">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-500">Completion rate</span>
                 <span className="font-semibold text-gray-900">
@@ -285,7 +284,7 @@ function QuickAction({
   return (
     <Link
       href={href}
-      className="group flex items-start gap-3 rounded-xl p-3 transition hover:bg-gray-50"
+      className="group flex items-start gap-3 rounded-xl p-3 transition hover:bg-white/60"
     >
       <div
         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${accent}`}
@@ -318,14 +317,14 @@ function WorkloadBar({
 
   return (
     <div>
-      <div className="flex items-center justify-between text-xs mb-1.5">
+      <div className="mb-1.5 flex items-center justify-between text-xs">
         <span className="text-gray-600">{label}</span>
         <span className="font-medium text-gray-900">
           {value}{' '}
-          <span className="text-gray-400 font-normal">({pct}%)</span>
+          <span className="font-normal text-gray-400">({pct}%)</span>
         </span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+      <div className="h-2 overflow-hidden rounded-full bg-white/60">
         <div
           className={`h-full ${color} transition-all duration-500`}
           style={{ width: `${Math.max(2, pct)}%` }}
