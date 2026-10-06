@@ -3,7 +3,6 @@ import type { ComplaintStatus } from '../types';
 
 /**
  * Complaint Repository - DB access ONLY.
- * No business logic. No auth checks. No Zod.
  */
 
 const AUTHOR_SELECT = {
@@ -12,10 +11,6 @@ const AUTHOR_SELECT = {
   email: true,
 } as const;
 
-/**
- * Create a new complaint.
- * If anonymous, pass user_id = null.
- */
 export async function createComplaint(data: {
   title: string;
   description: string;
@@ -37,10 +32,6 @@ export async function createComplaint(data: {
   });
 }
 
-/**
- * Find a complaint by its ID, including the author.
- * Returns null if not found.
- */
 export async function findComplaintById(complaintId: number) {
   return prisma.complaint.findUnique({
     where: { complaint_id: complaintId },
@@ -50,10 +41,6 @@ export async function findComplaintById(complaintId: number) {
   });
 }
 
-/**
- * List all complaints submitted by a specific user.
- * Ordered newest first.
- */
 export async function listComplaintsByUser(userId: number) {
   return prisma.complaint.findMany({
     where: { user_id: userId },
@@ -64,11 +51,6 @@ export async function listComplaintsByUser(userId: number) {
   });
 }
 
-/**
- * List all complaints in the system.
- * For managers/admins.
- * Optional filter by status.
- */
 export async function listAllComplaints(filter?: {
   status?: ComplaintStatus;
 }) {
@@ -81,10 +63,6 @@ export async function listAllComplaints(filter?: {
   });
 }
 
-/**
- * Count complaints grouped by status.
- * Useful for dashboard widgets later.
- */
 export async function countComplaintsByStatus() {
   const rows = await prisma.complaint.groupBy({
     by: ['status'],
@@ -98,16 +76,10 @@ export async function countComplaintsByStatus() {
   return counts;
 }
 
-/**
- * Count all complaints.
- */
 export async function countAllComplaints(): Promise<number> {
   return prisma.complaint.count();
 }
 
-/**
- * Count complaints for a specific user, grouped by status.
- */
 export async function countUserComplaintsByStatus(userId: number) {
   const rows = await prisma.complaint.groupBy({
     by: ['status'],
@@ -122,15 +94,30 @@ export async function countUserComplaintsByStatus(userId: number) {
   return counts;
 }
 
-/**
- * Get the most recent N complaints for a user.
- */
 export async function getRecentUserComplaints(
   userId: number,
   limit: number = 5
 ) {
   return prisma.complaint.findMany({
     where: { user_id: userId },
+    orderBy: { created_at: 'desc' },
+    take: limit,
+    include: {
+      user: { select: AUTHOR_SELECT },
+    },
+  });
+}
+
+/**
+ * Get most recent N complaints with a given status.
+ * Used by manager dashboard for "Pending Review" preview.
+ */
+export async function getRecentComplaintsByStatus(
+  status: ComplaintStatus,
+  limit = 5
+) {
+  return prisma.complaint.findMany({
+    where: { status },
     orderBy: { created_at: 'desc' },
     take: limit,
     include: {

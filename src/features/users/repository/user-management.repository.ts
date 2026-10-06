@@ -43,6 +43,17 @@ export async function listAllUsers(filter?: {
 }
 
 /**
+ * List the most recently created users (for admin dashboard).
+ */
+export async function listRecentUsers(limit = 5) {
+  return prisma.user.findMany({
+    take: limit,
+    orderBy: { created_at: 'desc' },
+    include: USER_INCLUDE,
+  });
+}
+
+/**
  * Find a user by id (with role + department).
  */
 export async function findUserById(userId: number) {

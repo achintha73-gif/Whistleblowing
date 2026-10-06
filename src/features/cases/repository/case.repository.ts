@@ -3,12 +3,7 @@ import type { CasePriority, CaseStatus } from '../types';
 
 /**
  * Case Repository - DB access ONLY.
- * No business logic. No auth checks.
  */
-
-// -------------------------------------------------------------
-// Relations to include by default
-// -------------------------------------------------------------
 
 const INVESTIGATOR_SELECT = {
   user_id: true,
@@ -24,15 +19,6 @@ const COMPLAINT_SUMMARY = {
   isAnonymous: true,
 } as const;
 
-// -------------------------------------------------------------
-// Create
-// -------------------------------------------------------------
-
-/**
- * Create a case directly from a complaint.
- * Business rules (like "complaint must not already have a case")
- * are enforced in the service layer.
- */
 export async function createCase(data: {
   complaint_id: number;
   priority: CasePriority;
@@ -49,10 +35,6 @@ export async function createCase(data: {
     },
   });
 }
-
-// -------------------------------------------------------------
-// Read
-// -------------------------------------------------------------
 
 export async function findCaseById(caseId: number) {
   return prisma.case.findUnique({
@@ -99,10 +81,6 @@ export async function listCasesForInvestigator(investigatorId: number) {
   });
 }
 
-// -------------------------------------------------------------
-// Update
-// -------------------------------------------------------------
-
 export async function assignInvestigator(
   caseId: number,
   investigatorId: number
@@ -113,10 +91,6 @@ export async function assignInvestigator(
   });
 }
 
-/**
- * Update case status.
- * Sets closed_at timestamp when moving to CLOSED or ARCHIVED.
- */
 export async function updateCaseStatus(caseId: number, status: CaseStatus) {
   const isClosed = status === 'CLOSED' || status === 'ARCHIVED';
 
@@ -128,10 +102,6 @@ export async function updateCaseStatus(caseId: number, status: CaseStatus) {
     },
   });
 }
-
-// -------------------------------------------------------------
-// Status History
-// -------------------------------------------------------------
 
 export async function addStatusHistory(data: {
   case_id: number;
@@ -157,10 +127,6 @@ export async function listStatusHistoryForCase(caseId: number) {
   });
 }
 
-// -------------------------------------------------------------
-// Stats
-// -------------------------------------------------------------
-
 export async function countCasesByStatus() {
   const rows = await prisma.case.groupBy({
     by: ['status'],
@@ -183,5 +149,73 @@ export async function countCasesForInvestigator(
 ): Promise<number> {
   return prisma.case.count({
     where: { assigned_investigator_id: investigatorId },
+  });
+}
+
+export async function countUnassignedCases(): Promise<number> {
+  return prisma.case.count({
+    where: {
+      assigned_investigator_id: null,
+      status: { notIn: ['CLOSED', 'ARCHIVED'] },
+    },
+  });
+}
+
+export async function countActiveCases(): Promise<number> {
+  return prisma.case.count({
+    where: {
+      status: { in: ['OPEN', 'INVESTIGATING', 'PENDING_REVIEW'] },
+    },
+  });
+}
+
+/**
+ * Count cases assigned to an investigator grouped by status.
+ */
+export async function countCasesForInvestigatorByStatus(investigatorId: number) {
+  const rows = await prisma.case.groupBy({
+    by: ['status'],
+    where: { assigned_investigator_id: investigatorId },
+    _count: { _all: true },
+  });
+
+  const counts: Record<string, number> = {};
+  for (const row of rows) {
+    counts[row.status] = row._count._all;
+  }
+  return counts;
+}
+
+/**
+ * Count reports submitted by investigator's cases.
+ */
+export async function countReportsForInvestigator(
+  investigatorId: number
+): Promise<number> {
+  return prisma.investigationReport.count({
+    where: {
+      case: { assigned_investigator_id: investigatorId },
+    },
+  });
+}
+
+/**
+ * Get recent active cases assigned to an investigator.
+ */
+export async function getRecentCasesForInvestigator(
+  investigatorId: number,
+  limit = 5
+) {
+  return prisma.case.findMany({
+    where: {
+      assigned_investigator_id: investigatorId,
+      status: { notIn: ['CLOSED', 'ARCHIVED'] },
+    },
+    orderBy: { updated_at: 'desc' },
+    take: limit,
+    include: {
+      complaint: { select: COMPLAINT_SUMMARY },
+      assignedInvestigator: { select: INVESTIGATOR_SELECT },
+    },
   });
 }

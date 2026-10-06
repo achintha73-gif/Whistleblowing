@@ -4,24 +4,20 @@ import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, AlertCircle } from 'lucide-react';
 
+const CODE_LENGTH = 12; // WB-XXXX-XXXX
+
 function formatCodeInput(value: string): string {
-  // Strip non-alphanumeric, uppercase
   const clean = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
 
-  // If starts with WB, strip it for the middle formatting then re-add
   let rest = clean;
   if (rest.startsWith('WB')) {
     rest = rest.slice(2);
   }
 
-  // Limit to 8 chars after WB
   rest = rest.slice(0, 8);
 
   if (rest.length === 0) return '';
-
-  if (rest.length <= 4) {
-    return `WB-${rest}`;
-  }
+  if (rest.length <= 4) return `WB-${rest}`;
   return `WB-${rest.slice(0, 4)}-${rest.slice(4)}`;
 }
 
@@ -32,8 +28,7 @@ export function TrackCodeForm() {
   const [loading, setLoading] = useState(false);
 
   function handleChange(value: string) {
-    const formatted = formatCodeInput(value);
-    setCode(formatted);
+    setCode(formatCodeInput(value));
     setError(null);
   }
 
@@ -41,7 +36,6 @@ export function TrackCodeForm() {
     e.preventDefault();
     setError(null);
 
-    // Validate format
     const pattern = /^WB-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/;
     if (!pattern.test(code)) {
       setError('Please enter a valid reference code (format: WB-XXXX-XXXX)');
@@ -75,7 +69,7 @@ export function TrackCodeForm() {
           value={code}
           onChange={(e) => handleChange(e.target.value)}
           placeholder="WB-XXXX-XXXX"
-          maxLength={13}
+          maxLength={CODE_LENGTH}
           autoFocus
           className="w-full rounded-md border border-gray-300 px-3 py-3 text-center font-mono text-lg font-bold tracking-widest text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
@@ -86,7 +80,7 @@ export function TrackCodeForm() {
 
       <button
         type="submit"
-        disabled={loading || code.length < 13}
+        disabled={loading || code.length !== CODE_LENGTH}
         className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition"
       >
         <Search className="h-4 w-4" />

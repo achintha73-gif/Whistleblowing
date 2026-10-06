@@ -5,6 +5,7 @@ import type {
   CreateComplaintInput,
 } from '../types';
 import * as repo from '../repository/complaint.repository';
+import * as caseRepo from '@/features/cases/repository/case.repository';
 import { prisma } from '@/lib/db';
 
 // -------------------------------------------------------------
@@ -211,13 +212,6 @@ export async function getUserComplaintStats(
 // Delete Complaint
 // -------------------------------------------------------------
 
-/**
- * Check if user can delete a complaint:
- *  - USER: only own complaints, only status = PENDING
- *  - MANAGER: any PENDING or REJECTED complaint
- *  - ADMIN: any except CONVERTED_TO_CASE
- *  - INVESTIGATOR: never
- */
 export async function canDeleteComplaint(
   user: SafeUser,
   complaintId: number
@@ -229,7 +223,6 @@ export async function canDeleteComplaint(
 
   if (!row) return false;
 
-  // Never allow deleting a complaint that has a case
   if (row.status === 'CONVERTED_TO_CASE') return false;
 
   if (user.roleName === 'ADMIN') {
@@ -241,7 +234,6 @@ export async function canDeleteComplaint(
   }
 
   if (user.roleName === 'USER') {
-    // Only own + only pending
     if (row.user_id !== user.userId) return false;
     return row.status === 'PENDING';
   }
@@ -258,7 +250,6 @@ export async function deleteComplaint(
     return { success: false, error: 'You cannot delete this complaint' };
   }
 
-  // Block if a case exists (shouldn't happen given canDelete check, but be safe)
   const existingCase = await prisma.case.findUnique({
     where: { complaint_id: complaintId },
     select: { case_id: true },
@@ -270,11 +261,41 @@ export async function deleteComplaint(
     };
   }
 
-  // Cascade deletes: additional info, complaint-linked evidence
-  // (Prisma handles this via onDelete: Cascade on the relations)
   await prisma.complaint.delete({
     where: { complaint_id: complaintId },
   });
 
   return { success: true };
+}
+
+// -------------------------------------------------------------
+// Manager Dashboard Data
+// -------------------------------------------------------------
+
+export interface ManagerDashboardData {
+  totalComplaints: number;
+  pendingCount: number;
+  activeCases: number;
+  unassignedCases: number;
+  recentPending: ComplaintSummary[];
+}
+
+export async function getManagerDashboardData(): Promise<ManagerDashboardData> {
+  const [counts, activeCases, unassignedCases, recentPending] =
+    await Promise.all([
+      repo.countComplaintsByStatus(),
+      caseRepo.countActiveCases(),
+      caseRepo.countUnassignedCases(),
+      repo.getRecentComplaintsByStatus('PENDING', 5),
+    ]);
+
+  const total = Object.values(counts).reduce((sum, c) => sum + c, 0);
+
+  return {
+    totalComplaints: total,
+    pendingCount: counts.PENDING ?? 0,
+    activeCases,
+    unassignedCases,
+    recentPending: recentPending.map(toComplaintSummary),
+  };
 }

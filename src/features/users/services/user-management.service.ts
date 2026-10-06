@@ -155,22 +155,48 @@ export async function listRoles(user: SafeUser) {
 // Admin Dashboard Stats
 // -------------------------------------------------------------
 
+export interface AdminRecentUser {
+  userId: number;
+  name: string;
+  email: string;
+  status: UserStatus;
+  roleName: RoleName;
+  departmentName: string | null;
+  createdAt: Date;
+}
+
 export interface AdminStats {
   totalUsers: number;
   activeUsers: number;
   suspendedUsers: number;
   totalDepartments: number;
+  recentUsers: AdminRecentUser[];
 }
 
 export async function getAdminStats(): Promise<AdminStats> {
-  const byStatus = await userRepo.countUsersByStatus();
-  const totalUsers = await userRepo.countAllUsers();
-  const totalDepartments = await userRepo.countAllDepartments();
+  const [byStatus, totalUsers, totalDepartments, recentRows] =
+    await Promise.all([
+      userRepo.countUsersByStatus(),
+      userRepo.countAllUsers(),
+      userRepo.countAllDepartments(),
+      userRepo.listRecentUsers(5),
+    ]);
+
+  const recentUsers: AdminRecentUser[] = recentRows.map((r) => ({
+    userId: r.user_id,
+    name: r.name,
+    email: r.email,
+    status: r.status as UserStatus,
+    roleName: r.role.role_name as RoleName,
+    departmentName: r.department?.department_name ?? null,
+    createdAt: r.created_at,
+  }));
 
   return {
     totalUsers,
     activeUsers: byStatus.ACTIVE ?? 0,
     suspendedUsers: (byStatus.SUSPENDED ?? 0) + (byStatus.INACTIVE ?? 0),
     totalDepartments,
+    recentUsers,
   };
 }

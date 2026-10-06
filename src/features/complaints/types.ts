@@ -22,6 +22,7 @@ export type ComplaintStatus =
  */
 export const COMPLAINT_CATEGORIES = [
   'Fraud',
+  'Financial',
   'Corruption',
   'Harassment',
   'Discrimination',

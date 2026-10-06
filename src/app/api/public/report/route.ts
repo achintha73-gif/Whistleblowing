@@ -7,6 +7,7 @@ import {
   generateReferenceCode,
   isValidReferenceCode,
 } from '@/lib/reference-code';
+import { verifyRecaptcha } from '@/lib/recaptcha';
 
 /**
  * POST /api/public/report
@@ -16,14 +17,11 @@ import {
  *   - title: string
  *   - description: string
  *   - category?: string
+ *   - recaptchaToken: string
  *   - files?: File[] (multiple, key "files")
- *   - fileDescriptions?: string[] (parallel to files)
- *
- * Creates an anonymous complaint + associated evidence.
- * Returns: { complaintId, referenceCode }
  */
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const MAX_FILES = 5;
 
 const ALLOWED_EXTENSIONS = [
@@ -52,9 +50,6 @@ function inferFileType(ext: string): string {
   return 'Other';
 }
 
-/**
- * Retry-generate a reference code until unique.
- */
 async function generateUniqueReferenceCode(): Promise<string> {
   for (let i = 0; i < 10; i++) {
     const code = generateReferenceCode();
@@ -72,11 +67,26 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
 
+    // ── reCAPTCHA verification ─────────────────────────────
+    const recaptchaToken = String(formData.get('recaptchaToken') ?? '').trim();
+    const captcha = await verifyRecaptcha(recaptchaToken);
+
+    if (!captcha.success) {
+      return NextResponse.json(
+        {
+          error:
+            'reCAPTCHA verification failed. Please try again or refresh the page.',
+          codes: captcha.errorCodes,
+        },
+        { status: 400 }
+      );
+    }
+
     const title = String(formData.get('title') ?? '').trim();
     const description = String(formData.get('description') ?? '').trim();
     const category = String(formData.get('category') ?? '').trim() || null;
 
-    // Validation
+    // ── Validation ─────────────────────────────────────────
     if (title.length < 5) {
       return NextResponse.json(
         { error: 'Title must be at least 5 characters' },
@@ -102,7 +112,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Collect files
+    // ── Files ──────────────────────────────────────────────
     const files = formData.getAll('files').filter((f): f is File => f instanceof File);
     if (files.length > MAX_FILES) {
       return NextResponse.json(
@@ -111,7 +121,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file sizes and types
     for (const f of files) {
       if (f.size > MAX_FILE_SIZE) {
         return NextResponse.json(
@@ -128,10 +137,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Generate unique reference code
+    // ── Create ─────────────────────────────────────────────
     const referenceCode = await generateUniqueReferenceCode();
 
-    // Create complaint
     const complaint = await prisma.complaint.create({
       data: {
         title,
@@ -144,7 +152,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Save files to disk + create evidence rows
     const uploadDir = join(process.cwd(), 'private-uploads');
     for (const f of files) {
       const uuid = randomUUID();

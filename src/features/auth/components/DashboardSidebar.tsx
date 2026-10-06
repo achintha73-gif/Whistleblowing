@@ -11,107 +11,212 @@ import {
   FileText,
   Users,
   Settings,
+  HelpCircle,
 } from 'lucide-react';
 import type { RoleName, SafeUser } from '../types';
+import type { SidebarBadges } from '../services/sidebar.service';
+import { SidebarLogoutButton } from './SidebarLogoutButton';
 
 interface MenuItem {
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
+  badge?: 'notifications' | 'complaints' | 'cases';
   exact?: boolean;
 }
 
-const MENU_BY_ROLE: Record<RoleName, MenuItem[]> = {
+interface MenuSection {
+  title?: string;
+  items: MenuItem[];
+}
+
+const MENU_BY_ROLE: Record<RoleName, MenuSection[]> = {
   USER: [
-    { href: '/dashboard/user', label: 'Dashboard', icon: Home, exact: true },
-    { href: '/dashboard/complaints/new', label: 'Submit Complaint', icon: PlusCircle },
-    { href: '/dashboard/complaints', label: 'My Complaints', icon: ListChecks, exact: true },
-    { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
+    {
+      items: [
+        { href: '/dashboard/user', label: 'Dashboard', icon: Home, exact: true },
+        { href: '/dashboard/complaints/new', label: 'Submit Complaint', icon: PlusCircle },
+        { href: '/dashboard/complaints', label: 'My Complaints', icon: ListChecks, exact: true, badge: 'complaints' },
+        { href: '/dashboard/notifications', label: 'Notifications', icon: Bell, badge: 'notifications' },
+      ],
+    },
   ],
   MANAGER: [
-    { href: '/dashboard/manager', label: 'Dashboard', icon: Home, exact: true },
-    { href: '/dashboard/complaints', label: 'Complaints', icon: ListChecks },
-    { href: '/dashboard/cases', label: 'Cases', icon: FolderOpen },
-    { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
+    {
+      title: 'Main',
+      items: [
+        { href: '/dashboard/manager', label: 'Dashboard', icon: Home, exact: true },
+        { href: '/dashboard/complaints', label: 'Complaints', icon: ListChecks, badge: 'complaints' },
+        { href: '/dashboard/cases', label: 'Cases', icon: FolderOpen, badge: 'cases' },
+        { href: '/dashboard/notifications', label: 'Notifications', icon: Bell, badge: 'notifications' },
+      ],
+    },
   ],
   INVESTIGATOR: [
-    { href: '/dashboard/investigator', label: 'Dashboard', icon: Home, exact: true },
-    { href: '/dashboard/cases', label: 'My Cases', icon: FolderOpen },
-    { href: '/dashboard/evidence', label: 'Evidence', icon: FileText },
-    { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
+    {
+      title: 'Main',
+      items: [
+        { href: '/dashboard/investigator', label: 'Dashboard', icon: Home, exact: true },
+        { href: '/dashboard/cases', label: 'My Cases', icon: FolderOpen, badge: 'cases' },
+        { href: '/dashboard/evidence', label: 'Evidence', icon: FileText },
+        { href: '/dashboard/notifications', label: 'Notifications', icon: Bell, badge: 'notifications' },
+      ],
+    },
   ],
   ADMIN: [
-    { href: '/dashboard/admin', label: 'Dashboard', icon: Home, exact: true },
-    { href: '/dashboard/users', label: 'Users', icon: Users },
-    { href: '/dashboard/settings', label: 'Settings', icon: Settings },
-    { href: '/dashboard/logs', label: 'Logs', icon: FileText },
+    {
+      title: 'Administration',
+      items: [
+        { href: '/dashboard/admin', label: 'Dashboard', icon: Home, exact: true },
+        { href: '/dashboard/users', label: 'Users', icon: Users },
+        { href: '/dashboard/notifications', label: 'Notifications', icon: Bell, badge: 'notifications' },
+      ],
+    },
+    {
+      title: 'System',
+      items: [
+        { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+        { href: '/dashboard/logs', label: 'Activity Logs', icon: FileText },
+      ],
+    },
   ],
-};
-
-const ROLE_LABELS: Record<string, string> = {
-  ADMIN: 'Administrator',
-  MANAGER: 'Manager',
-  INVESTIGATOR: 'Investigator',
-  USER: 'Employee',
 };
 
 export function DashboardSidebar({
   roleName,
   user,
+  badges,
 }: {
   roleName: RoleName;
   user: SafeUser;
+  badges: SidebarBadges;
 }) {
   const pathname = usePathname();
-  const items = MENU_BY_ROLE[roleName] ?? [];
+  const sections = MENU_BY_ROLE[roleName] ?? [];
+  const isSupportActive =
+    pathname === '/support' || pathname.startsWith('/support/');
+  const isProfileActive =
+    pathname === '/dashboard/profile' || pathname.startsWith('/dashboard/profile/');
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r border-gray-200 bg-white">
-      <nav className="flex-1 flex flex-col gap-1 p-3">
-        {items.map((item) => {
-          const isActive = item.exact
-            ? pathname === item.href
-            : pathname === item.href || pathname.startsWith(item.href + '/');
-
-          const Icon = item.icon;
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-                isActive
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
-              <Icon
-                className={`h-5 w-5 shrink-0 ${
-                  isActive ? 'text-blue-700' : 'text-gray-500'
-                }`}
-              />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div className="border-t border-gray-200 p-3">
-        <div className="rounded-lg bg-gray-50 p-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-semibold">
-              {user.name.charAt(0).toUpperCase()}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-medium text-gray-900">
-                {user.name}
+    <aside className="flex w-64 shrink-0 flex-col border-r border-white/40 bg-white/40 backdrop-blur-xl">
+      <nav className="flex-1 overflow-y-auto p-4 pt-6">
+        {sections.map((section, sIdx) => (
+          <div key={sIdx} className={sIdx > 0 ? 'mt-6' : ''}>
+            {section.title && (
+              <div className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+                {section.title}
               </div>
-              <div className="truncate text-xs text-gray-500">
-                {ROLE_LABELS[user.roleName] ?? user.roleName}
-              </div>
+            )}
+            <div className="flex flex-col gap-1">
+              {section.items.map((item) => {
+                const isActive = item.exact
+                  ? pathname === item.href
+                  : pathname === item.href ||
+                    pathname.startsWith(item.href + '/');
+                const Icon = item.icon;
+                const badgeValue = item.badge ? badges[item.badge] : 0;
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+                      isActive
+                        ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30'
+                        : 'text-gray-700 hover:bg-white/60 hover:text-gray-900'
+                    }`}
+                  >
+                    <span
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200 ${
+                        isActive
+                          ? 'bg-white/20'
+                          : 'bg-white/50 group-hover:bg-white/80 group-hover:scale-105'
+                      }`}
+                    >
+                      <Icon
+                        className={`h-4 w-4 ${
+                          isActive
+                            ? 'text-white'
+                            : 'text-gray-600 group-hover:text-gray-800'
+                        }`}
+                      />
+                    </span>
+                    <span className="flex-1">{item.label}</span>
+                    {badgeValue > 0 && (
+                      <span
+                        className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                          isActive
+                            ? 'bg-white/25 text-white'
+                            : 'bg-blue-500/15 text-blue-700'
+                        }`}
+                      >
+                        {badgeValue > 99 ? '99+' : badgeValue}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
             </div>
           </div>
-        </div>
+        ))}
+      </nav>
+
+      {/* Bottom: Profile + Support + Logout */}
+      <div className="border-t border-white/40 p-4 space-y-1">
+        <Link
+          href="/dashboard/profile"
+          className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+            isProfileActive
+              ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30'
+              : 'text-gray-700 hover:bg-white/60 hover:text-gray-900'
+          }`}
+        >
+          <span
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200 ${
+              isProfileActive
+                ? 'bg-white/20'
+                : 'bg-white/50 group-hover:bg-white/80 group-hover:scale-105'
+            }`}
+          >
+            <Users
+              className={`h-4 w-4 ${
+                isProfileActive
+                  ? 'text-white'
+                  : 'text-gray-600 group-hover:text-gray-800'
+              }`}
+            />
+          </span>
+          <span className="flex-1">My Profile</span>
+        </Link>
+
+        <Link
+          href="/support"
+          className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+            isSupportActive
+              ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30'
+              : 'text-gray-700 hover:bg-white/60 hover:text-gray-900'
+          }`}
+        >
+          <span
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200 ${
+              isSupportActive
+                ? 'bg-white/20'
+                : 'bg-white/50 group-hover:bg-white/80 group-hover:scale-105'
+            }`}
+          >
+            <HelpCircle
+              className={`h-4 w-4 ${
+                isSupportActive
+                  ? 'text-white'
+                  : 'text-gray-600 group-hover:text-gray-800'
+              }`}
+            />
+          </span>
+          <span className="flex-1">Support</span>
+        </Link>
+
+        <SidebarLogoutButton />
       </div>
     </aside>
   );
