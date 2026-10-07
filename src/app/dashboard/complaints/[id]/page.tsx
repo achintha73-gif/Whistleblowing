@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getSession } from '@/lib/auth';
+import { ArrowLeft } from 'lucide-react';
 import { ComplaintStatusBadge } from '@/features/complaints/components/ComplaintStatusBadge';
 import {
   getComplaintForUser,
@@ -43,7 +44,6 @@ export default async function ComplaintDetailPage({
 
   const evidence = await getEvidenceForComplaint(user, complaintId);
 
-  // Compute which evidence can be deleted by this user
   const deletableIds: number[] = [];
   for (const ev of evidence) {
     const allowed = await canDeleteEvidence(user, ev.evidenceId);
@@ -61,12 +61,14 @@ export default async function ComplaintDetailPage({
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+      {/* Back + Delete */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <Link
           href="/dashboard/complaints"
-          className="text-sm font-medium text-gray-600 hover:text-gray-900"
+          className="group inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 transition hover:text-blue-600"
         >
-          &larr; Back to complaints
+          <ArrowLeft className="h-3.5 w-3.5 transition group-hover:-translate-x-0.5" />
+          Back to complaints
         </Link>
         {canDelete && (
           <DeleteComplaintButton
@@ -76,25 +78,28 @@ export default async function ComplaintDetailPage({
         )}
       </div>
 
-      {/* Complaint header + details */}
-      <div className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-gray-900">
+      {/* Complaint header — glass */}
+      <div className="rounded-2xl border border-white/60 bg-white/60 p-6 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
+        {/* Title + badge — stack on mobile */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">
               {complaint.title}
             </h1>
-            <div className="mt-2 flex items-center gap-3 text-sm text-gray-500 flex-wrap">
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-500">
               {complaint.category && (
-                <span className="rounded-md bg-gray-100 px-2 py-0.5 text-xs">
+                <span className="rounded-md bg-white/70 px-2 py-0.5 text-xs font-medium">
                   {complaint.category}
                 </span>
               )}
               {complaint.isAnonymous && (
-                <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
+                <span className="inline-flex items-center rounded-full bg-white/70 px-2 py-0.5 text-xs font-medium text-gray-700">
                   Anonymous
                 </span>
               )}
-              <span>Complaint #{complaint.complaintId}</span>
+              <span className="text-xs text-gray-500">
+                Complaint #{complaint.complaintId}
+              </span>
             </div>
           </div>
           <div className="shrink-0">
@@ -102,18 +107,18 @@ export default async function ComplaintDetailPage({
           </div>
         </div>
 
-        <div className="mt-6 border-t border-gray-200 pt-6">
-          <h2 className="text-sm font-semibold text-gray-700 mb-2">
+        <div className="mt-6 border-t border-white/60 pt-6">
+          <h2 className="mb-2 text-sm font-semibold text-gray-700">
             Description
           </h2>
-          <p className="whitespace-pre-wrap text-sm text-gray-800 leading-relaxed">
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">
             {complaint.description}
           </p>
         </div>
 
-        <div className="mt-6 border-t border-gray-200 pt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+        <div className="mt-6 grid grid-cols-1 gap-4 border-t border-white/60 pt-6 text-sm sm:grid-cols-2">
           <div>
-            <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            <div className="text-xs font-semibold uppercase tracking-wider text-gray-500">
               Submitted by
             </div>
             <div className="mt-1 text-gray-900">
@@ -129,7 +134,7 @@ export default async function ComplaintDetailPage({
           </div>
 
           <div>
-            <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            <div className="text-xs font-semibold uppercase tracking-wider text-gray-500">
               Submitted at
             </div>
             <div className="mt-1 text-gray-900">
@@ -142,9 +147,9 @@ export default async function ComplaintDetailPage({
         </div>
       </div>
 
-      {/* Attached Evidence */}
-      <div className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
-        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+      {/* Attached Evidence — glass */}
+      <div className="rounded-2xl border border-white/60 bg-white/60 p-6 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-sm font-semibold text-gray-700">
             Attached Evidence ({evidence.length})
           </h2>
@@ -153,7 +158,7 @@ export default async function ComplaintDetailPage({
           )}
         </div>
         {evidence.length === 0 ? (
-          <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-6 text-center">
+          <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-white/50 p-6 text-center">
             <p className="text-sm text-gray-500">
               No evidence attached to this complaint.
             </p>
@@ -163,9 +168,9 @@ export default async function ComplaintDetailPage({
         )}
       </div>
 
-      {/* Additional Information */}
-      <div className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
-        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+      {/* Additional Information — glass */}
+      <div className="rounded-2xl border border-white/60 bg-white/60 p-6 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-sm font-semibold text-gray-700">
             Additional Information ({additionalInfo.length})
           </h2>

@@ -12,6 +12,8 @@ import {
   Users,
   Settings,
   HelpCircle,
+  X,
+  Shield,
 } from 'lucide-react';
 import type { RoleName, SafeUser } from '../types';
 import type { SidebarBadges } from '../services/sidebar.service';
@@ -86,10 +88,14 @@ export function DashboardSidebar({
   roleName,
   user,
   badges,
+  isMobile = false,
+  onClose,
 }: {
   roleName: RoleName;
   user: SafeUser;
   badges: SidebarBadges;
+  isMobile?: boolean;
+  onClose?: () => void;
 }) {
   const pathname = usePathname();
   const sections = MENU_BY_ROLE[roleName] ?? [];
@@ -100,8 +106,39 @@ export function DashboardSidebar({
     pathname === '/dashboard/profile' || pathname.startsWith('/dashboard/profile/');
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r border-white/40 bg-white/40 backdrop-blur-xl">
-      <nav className="flex-1 overflow-y-auto p-4 pt-6">
+    <aside
+      className={`flex w-full flex-col bg-white/80 backdrop-blur-xl ${
+        isMobile
+          ? 'h-full shadow-2xl'
+          : 'h-full w-64 shrink-0 border-r border-white/40'
+      }`}
+    >
+      {/* Mobile header: logo + close */}
+      {isMobile && (
+        <div className="flex shrink-0 items-center justify-between border-b border-white/40 px-4 py-3">
+          <Link href="/dashboard" className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 shadow-md shadow-blue-500/30">
+              <Shield className="h-4.5 w-4.5 text-white" strokeWidth={2.5} />
+            </div>
+            <span className="text-sm font-semibold text-gray-900">
+              Whistleblowing
+            </span>
+          </Link>
+
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/60 bg-white/60 text-gray-600 transition hover:bg-white hover:text-gray-900"
+              aria-label="Close menu"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      )}
+
+      <nav className={`flex-1 overflow-y-auto p-4 ${isMobile ? 'pt-4' : 'pt-6'}`}>
         {sections.map((section, sIdx) => (
           <div key={sIdx} className={sIdx > 0 ? 'mt-6' : ''}>
             {section.title && (

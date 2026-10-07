@@ -52,10 +52,7 @@ export function EmployeeLoginForm() {
 
       {/* Email */}
       <div>
-        <label
-          htmlFor="email"
-          className="mb-1.5 block text-sm font-medium text-gray-700"
-        >
+        <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-gray-700">
           Email
         </label>
         <div className="relative">
@@ -75,10 +72,7 @@ export function EmployeeLoginForm() {
 
       {/* Password */}
       <div>
-        <label
-          htmlFor="password"
-          className="mb-1.5 block text-sm font-medium text-gray-700"
-        >
+        <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-gray-700">
           Password
         </label>
         <div className="relative">
@@ -100,11 +94,7 @@ export function EmployeeLoginForm() {
             aria-label={showPassword ? 'Hide password' : 'Show password'}
             tabIndex={-1}
           >
-            {showPassword ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Eye className="h-4 w-4" />
-            )}
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
       </div>
@@ -125,14 +115,25 @@ export function EmployeeLoginForm() {
         )}
       </button>
 
-      {/* Forgot password */}
-      <div className="text-center">
-        <Link
-          href="/forgot-password"
-          className="text-sm font-medium text-gray-600 transition hover:text-blue-600"
-        >
-          Forgot password?
-        </Link>
+      {/* Forgot + Register links */}
+      <div className="space-y-2 text-center">
+        <div>
+          <Link
+            href="/forgot-password"
+            className="text-sm font-medium text-gray-600 transition hover:text-blue-600"
+          >
+            Forgot password?
+          </Link>
+        </div>
+        <div className="border-t border-gray-100 pt-3 text-sm text-gray-600">
+          Don&apos;t have an account?{' '}
+          <Link
+            href="/register"
+            className="font-medium text-blue-600 transition hover:text-blue-700"
+          >
+            Create account
+          </Link>
+        </div>
       </div>
     </form>
   );
