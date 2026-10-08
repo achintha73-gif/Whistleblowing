@@ -141,6 +141,37 @@ export async function updateUserRole(
 }
 
 // -------------------------------------------------------------
+// Update Department (Admin only)
+// -------------------------------------------------------------
+
+export async function updateUserDepartment(
+  user: SafeUser,
+  targetUserId: number,
+  departmentId: number | null
+): Promise<UpdateResult | UpdateError> {
+  if (user.roleName !== 'ADMIN') {
+    return { success: false, error: 'Only admins can change user departments' };
+  }
+
+  const target = await userRepo.findUserById(targetUserId);
+  if (!target) {
+    return { success: false, error: 'User not found' };
+  }
+
+  // If assigning to a department, verify it exists and is active
+  if (departmentId !== null) {
+    const departments = await userRepo.listAllDepartments();
+    const exists = departments.some((d) => d.department_id === departmentId);
+    if (!exists) {
+      return { success: false, error: 'Invalid department' };
+    }
+  }
+
+  await userRepo.updateUserDepartment(targetUserId, departmentId);
+  return { success: true };
+}
+
+// -------------------------------------------------------------
 // List Roles (for dropdowns)
 // -------------------------------------------------------------
 

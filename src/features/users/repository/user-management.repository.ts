@@ -87,11 +87,38 @@ export async function updateUserRole(userId: number, roleId: number) {
 }
 
 /**
+ * Update user department (nullable - null removes assignment).
+ */
+export async function updateUserDepartment(
+  userId: number,
+  departmentId: number | null
+) {
+  return prisma.user.update({
+    where: { user_id: userId },
+    data: { department_id: departmentId },
+  });
+}
+
+/**
  * List all roles (for admin dropdowns).
  */
 export async function listAllRoles() {
   return prisma.role.findMany({
     orderBy: { role_id: 'asc' },
+  });
+}
+
+/**
+ * List all active departments (for admin dropdowns).
+ */
+export async function listAllDepartments() {
+  return prisma.department.findMany({
+    where: { status: 'active' },
+    orderBy: { department_name: 'asc' },
+    select: {
+      department_id: true,
+      department_name: true,
+    },
   });
 }
 

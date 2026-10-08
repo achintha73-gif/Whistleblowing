@@ -4,6 +4,7 @@ import {
   getUserById,
   updateUserStatus,
   updateUserRole,
+  updateUserDepartment,
 } from '@/features/users/services/user-management.service';
 
 export async function GET(
@@ -55,6 +56,7 @@ export async function PATCH(
 
     const body = await request.json();
 
+    // Status update
     if (body.status) {
       if (!['ACTIVE', 'INACTIVE', 'SUSPENDED'].includes(body.status)) {
         return NextResponse.json(
@@ -68,12 +70,32 @@ export async function PATCH(
       }
     }
 
+    // Role update
     if (body.roleId !== undefined) {
       const roleId = Number(body.roleId);
       if (!Number.isInteger(roleId) || roleId <= 0) {
         return NextResponse.json({ error: 'Invalid roleId' }, { status: 400 });
       }
       const result = await updateUserRole(user, userId, roleId);
+      if (!result.success) {
+        return NextResponse.json({ error: result.error }, { status: 400 });
+      }
+    }
+
+    // Department update
+    if (body.departmentId !== undefined) {
+      // null = remove assignment, number = assign
+      let departmentId: number | null = null;
+      if (body.departmentId !== null) {
+        departmentId = Number(body.departmentId);
+        if (!Number.isInteger(departmentId) || departmentId <= 0) {
+          return NextResponse.json(
+            { error: 'Invalid departmentId' },
+            { status: 400 }
+          );
+        }
+      }
+      const result = await updateUserDepartment(user, userId, departmentId);
       if (!result.success) {
         return NextResponse.json({ error: result.error }, { status: 400 });
       }
