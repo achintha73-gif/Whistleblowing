@@ -11,17 +11,12 @@ import {
 } from 'lucide-react';
 import { formatShortDate } from '@/lib/date-format';
 import { getInvestigatorDashboardStats } from '@/features/cases/services/case.service';
+import { getGreeting } from '@/lib/greeting';
 import { EdukaStatCard } from '@/features/complaints/components/EdukaStatCard';
 import { CaseStatusBadge } from '@/features/cases/components/CaseStatusBadge';
 import { CasePriorityBadge } from '@/features/cases/components/CasePriorityBadge';
 import type { CaseStatus, CasePriority } from '@/features/cases/types';
 
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 18) return 'Good afternoon';
-  return 'Good evening';
-}
 
 export default async function InvestigatorDashboardPage() {
   const user = await getSession();

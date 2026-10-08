@@ -12,18 +12,13 @@ import {
 } from 'lucide-react';
 import { formatDate } from '@/lib/date-format';
 import { getAdminStats } from '@/features/users/services/user-management.service';
+import { getGreeting } from '@/lib/greeting';
 import { EdukaStatCard } from '@/features/complaints/components/EdukaStatCard';
 import {
   ROLE_BADGE_STYLES,
   STATUS_BADGE_STYLES,
 } from '@/features/users/badge-styles';
 
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 18) return 'Good afternoon';
-  return 'Good evening';
-}
 
 export default async function AdminDashboardPage() {
   const user = await getSession();

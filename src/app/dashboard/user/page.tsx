@@ -13,13 +13,8 @@ import {
 import { EdukaStatCard } from '@/features/complaints/components/EdukaStatCard';
 import { ComplaintCard } from '@/features/complaints/components/ComplaintCard';
 import { getUserComplaintStats } from '@/features/complaints/services/complaint.service';
+import { getGreeting } from '@/lib/greeting';
 
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 18) return 'Good afternoon';
-  return 'Good evening';
-}
 
 export default async function UserDashboardPage() {
   const user = await getSession();

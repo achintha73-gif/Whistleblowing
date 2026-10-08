@@ -12,15 +12,10 @@ import {
 import {
   getManagerDashboardData,
 } from '@/features/complaints/services/complaint.service';
+import { getGreeting } from '@/lib/greeting';
 import { EdukaStatCard } from '@/features/complaints/components/EdukaStatCard';
 import { ComplaintCard } from '@/features/complaints/components/ComplaintCard';
 
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 18) return 'Good afternoon';
-  return 'Good evening';
-}
 
 export default async function ManagerDashboardPage() {
   const user = await getSession();
