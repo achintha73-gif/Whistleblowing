@@ -9,13 +9,13 @@ import { checkRateLimit, rateLimitKey } from '@/lib/rate-limit';
  * Body: { email, password }
  * On success: sets httpOnly session cookie and returns the user.
  *
- * Rate limit: 5 attempts per 15 minutes per IP.
+ * Rate limit: 20 attempts per 15 minutes per IP.
  */
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting
     const limit = checkRateLimit(rateLimitKey(request, 'login'), {
-      max: 5,
+      max: 20,
       windowSeconds: 15 * 60,
     });
 
