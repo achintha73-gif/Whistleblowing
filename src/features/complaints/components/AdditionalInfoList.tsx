@@ -1,7 +1,6 @@
 import { Info } from 'lucide-react';
-import {
-  INFORMATION_TYPE_LABELS,
-} from '../additional-info.types';
+import { formatDateTime } from '@/lib/date-format';
+import { INFORMATION_TYPE_LABELS } from '../additional-info.types';
 import type { AdditionalInfoDTO } from '../additional-info.types';
 
 const TYPE_COLORS: Record<string, string> = {
@@ -18,8 +17,8 @@ export function AdditionalInfoList({
 }) {
   if (items.length === 0) {
     return (
-      <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-        <Info className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+      <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-white/50 p-8 text-center">
+        <Info className="mx-auto mb-2 h-8 w-8 text-gray-400" />
         <p className="text-sm text-gray-500">
           No additional information submitted yet.
         </p>
@@ -37,9 +36,9 @@ export function AdditionalInfoList({
         return (
           <li
             key={item.infoId}
-            className="rounded-lg border border-gray-200 bg-white p-4"
+            className="rounded-xl border border-white/60 bg-white/60 p-4 shadow-sm backdrop-blur-sm"
           >
-            <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div className="flex flex-wrap items-start justify-between gap-3">
               <h4 className="text-sm font-semibold text-gray-900">
                 {item.title}
               </h4>
@@ -50,7 +49,7 @@ export function AdditionalInfoList({
                   item.informationType}
               </span>
             </div>
-            <p className="mt-2 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
               {item.description}
             </p>
             <p className="mt-2 text-xs text-gray-500">
@@ -58,11 +57,7 @@ export function AdditionalInfoList({
               <span className="font-medium text-gray-700">
                 {item.submittedBy.name}
               </span>{' '}
-              ·{' '}
-              {new Date(item.submittedAt).toLocaleString('en-US', {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-              })}
+              · {formatDateTime(item.submittedAt)}
             </p>
           </li>
         );

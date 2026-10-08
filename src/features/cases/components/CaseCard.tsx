@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { formatDate } from '@/lib/date-format';
 import { CaseStatusBadge } from './CaseStatusBadge';
 import { CasePriorityBadge } from './CasePriorityBadge';
 import type { CaseSummary } from '../types';
@@ -7,22 +8,22 @@ export function CaseCard({ caseItem }: { caseItem: CaseSummary }) {
   return (
     <Link
       href={`/dashboard/cases/${caseItem.caseId}`}
-      className="block rounded-lg border border-gray-200 bg-white p-4 shadow-sm hover:border-blue-400 hover:shadow-md transition"
+      className="block rounded-2xl border border-white/60 bg-white/60 p-4 shadow-lg shadow-blue-900/5 backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-xl"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="text-base font-semibold text-gray-900 truncate">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="truncate text-base font-semibold text-gray-900">
               {caseItem.complaintTitle}
             </h3>
           </div>
 
-          <div className="mt-2 flex items-center gap-2 text-xs flex-wrap">
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
             <CaseStatusBadge status={caseItem.status} />
             <CasePriorityBadge priority={caseItem.priority} />
           </div>
 
-          <div className="mt-2 flex items-center gap-3 text-xs text-gray-500 flex-wrap">
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500">
             <span>
               {caseItem.assignedInvestigator ? (
                 <>
@@ -35,14 +36,7 @@ export function CaseCard({ caseItem }: { caseItem: CaseSummary }) {
                 <span className="italic text-amber-600">Unassigned</span>
               )}
             </span>
-            <span>
-              Opened{' '}
-              {new Date(caseItem.createdAt).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-              })}
-            </span>
+            <span>Opened {formatDate(caseItem.createdAt)}</span>
           </div>
 
           <div className="mt-3 text-xs text-gray-400">

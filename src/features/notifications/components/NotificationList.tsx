@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bell, Check, Loader2 } from 'lucide-react';
+import { formatDateTime } from '@/lib/date-format';
 import type { NotificationDTO } from '../types';
 
 export function NotificationList({
@@ -85,10 +86,7 @@ export function NotificationList({
               {n.message}
             </p>
             <p className="mt-1.5 text-xs text-gray-500">
-              {new Date(n.createdAt).toLocaleString('en-US', {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-              })}
+              {formatDateTime(n.createdAt)}
             </p>
           </div>
 

@@ -9,6 +9,7 @@ import {
   ArrowRight,
   Bell,
 } from 'lucide-react';
+import { formatShortDate } from '@/lib/date-format';
 import { getInvestigatorDashboardStats } from '@/features/cases/services/case.service';
 import { EdukaStatCard } from '@/features/complaints/components/EdukaStatCard';
 import { CaseStatusBadge } from '@/features/cases/components/CaseStatusBadge';
@@ -169,10 +170,7 @@ export default async function InvestigatorDashboardPage() {
                           </div>
                           <p className="mt-1 text-xs text-gray-400">
                             Case #{c.caseId} · Updated{' '}
-                            {new Date(c.updatedAt).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                            })}
+                            {formatShortDate(c.updatedAt)}
                           </p>
                         </div>
                         <ArrowRight className="h-4 w-4 shrink-0 text-gray-300 transition group-hover:translate-x-0.5 group-hover:text-blue-600" />

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { ArrowLeft } from 'lucide-react';
+import { formatDateTime } from '@/lib/date-format';
 import { CaseStatusBadge } from '@/features/cases/components/CaseStatusBadge';
 import { CasePriorityBadge } from '@/features/cases/components/CasePriorityBadge';
 import { CaseStatusTimeline } from '@/features/cases/components/CaseStatusTimeline';
@@ -11,6 +12,7 @@ import {
   getCaseForUser,
   getCaseHistory,
 } from '@/features/cases/services/case.service';
+import { listCaseInvestigators } from '@/features/cases/repository/case.repository';
 import { EvidenceList } from '@/features/evidence/components/EvidenceList';
 import { AddEvidenceForm } from '@/features/evidence/components/AddEvidenceForm';
 import {
@@ -47,11 +49,12 @@ export default async function CaseDetailPage({
   const canAdd = await canAddEvidence(user, caseId);
   const report = await getReportForCase(user, caseId);
   const canEditReport = await canUpsertReport(user, caseId);
+  const caseInvestigators = await listCaseInvestigators(caseId);
 
   const isManager = user.roleName === 'MANAGER';
   const isAssignedInvestigator =
     user.roleName === 'INVESTIGATOR' &&
-    caseDetail.assignedInvestigator?.userId === user.userId;
+    caseInvestigators.some((i) => i.userId === user.userId);
   const canUpdateStatus = isManager || isAssignedInvestigator;
 
   return (
@@ -67,12 +70,12 @@ export default async function CaseDetailPage({
 
       {/* Header — glass */}
       <div className="rounded-2xl border border-white/60 bg-white/60 p-6 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <h1 className="text-2xl font-bold tracking-tight text-gray-900">
               {caseDetail.complaintTitle}
             </h1>
-            <div className="mt-2 flex items-center gap-2 flex-wrap">
+            <div className="mt-2 flex flex-wrap items-center gap-2">
               <CaseStatusBadge status={caseDetail.status} />
               <CasePriorityBadge priority={caseDetail.priority} />
               <span className="text-xs text-gray-500">
@@ -88,10 +91,7 @@ export default async function CaseDetailPage({
               Created
             </div>
             <div className="mt-1 text-gray-900">
-              {new Date(caseDetail.createdAt).toLocaleString('en-US', {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-              })}
+              {formatDateTime(caseDetail.createdAt)}
             </div>
           </div>
           <div>
@@ -99,10 +99,7 @@ export default async function CaseDetailPage({
               Last Updated
             </div>
             <div className="mt-1 text-gray-900">
-              {new Date(caseDetail.updatedAt).toLocaleString('en-US', {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-              })}
+              {formatDateTime(caseDetail.updatedAt)}
             </div>
           </div>
           <div>
@@ -110,28 +107,23 @@ export default async function CaseDetailPage({
               Closed
             </div>
             <div className="mt-1 text-gray-900">
-              {caseDetail.closedAt
-                ? new Date(caseDetail.closedAt).toLocaleString('en-US', {
-                    dateStyle: 'medium',
-                    timeStyle: 'short',
-                  })
-                : '—'}
+              {caseDetail.closedAt ? formatDateTime(caseDetail.closedAt) : '—'}
             </div>
           </div>
           <div>
             <div className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-              Assigned Investigator
+              Assigned Investigators
             </div>
             <div className="mt-1 text-gray-900">
-              {caseDetail.assignedInvestigator ? (
-                <>
-                  <div className="font-medium">
-                    {caseDetail.assignedInvestigator.name}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {caseDetail.assignedInvestigator.email}
-                  </div>
-                </>
+              {caseInvestigators.length > 0 ? (
+                <ul className="space-y-1">
+                  {caseInvestigators.map((inv) => (
+                    <li key={inv.userId}>
+                      <div className="font-medium">{inv.name}</div>
+                      <div className="text-xs text-gray-500">{inv.email}</div>
+                    </li>
+                  ))}
+                </ul>
               ) : (
                 <span className="italic text-amber-600">Unassigned</span>
               )}
@@ -145,7 +137,7 @@ export default async function CaseDetailPage({
         <h2 className="mb-2 text-sm font-semibold text-gray-700">
           Complaint Details
         </h2>
-        <div className="mb-3 flex items-center gap-2 flex-wrap text-xs text-gray-500">
+        <div className="mb-3 flex flex-wrap items-center gap-2 text-xs text-gray-500">
           {caseDetail.complaintCategory && (
             <span className="rounded-md bg-white/70 px-2 py-0.5">
               {caseDetail.complaintCategory}
@@ -162,13 +154,11 @@ export default async function CaseDetailPage({
         </p>
       </div>
 
-      {/* Assign investigator (manager only) */}
+      {/* Assign investigators (manager only) */}
       {isManager && (
         <AssignInvestigatorDropdown
           caseId={caseDetail.caseId}
-          currentInvestigatorId={
-            caseDetail.assignedInvestigator?.userId ?? null
-          }
+          currentInvestigatorIds={caseInvestigators.map((i) => i.userId)}
         />
       )}
 
@@ -183,7 +173,7 @@ export default async function CaseDetailPage({
 
       {/* Evidence — glass */}
       <div className="rounded-2xl border border-white/60 bg-white/60 p-6 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
-        <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-sm font-semibold text-gray-700">
             Evidence ({evidence.length})
           </h2>

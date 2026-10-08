@@ -1,5 +1,6 @@
 import type { EvidenceDTO } from '../types';
 import { DeleteEvidenceButton } from './DeleteEvidenceButton';
+import { formatDateTime } from '@/lib/date-format';
 import {
   FileText,
   Image as ImageIcon,
@@ -27,13 +28,12 @@ export function EvidenceList({
   deletableIds = [],
 }: {
   evidence: EvidenceDTO[];
-  /** IDs of evidence items the current user can delete */
   deletableIds?: number[];
 }) {
   if (evidence.length === 0) {
     return (
-      <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-        <Paperclip className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+      <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-white/50 p-8 text-center">
+        <Paperclip className="mx-auto mb-2 h-8 w-8 text-gray-400" />
         <p className="text-sm text-gray-500">No evidence collected yet.</p>
       </div>
     );
@@ -48,18 +48,18 @@ export function EvidenceList({
         return (
           <li
             key={item.evidenceId}
-            className="rounded-lg border border-gray-200 bg-white p-4"
+            className="rounded-xl border border-white/60 bg-white/60 p-4 shadow-sm backdrop-blur-sm"
           >
             <div className="flex items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
                 <Icon className="h-5 w-5" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className="text-sm font-semibold text-gray-900 break-all">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h4 className="break-all text-sm font-semibold text-gray-900">
                     {item.fileName}
                   </h4>
-                  <span className="rounded-md bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                  <span className="rounded-md bg-white/70 px-2 py-0.5 text-xs text-gray-600">
                     {item.fileType}
                   </span>
                   {item.hasFile && (
@@ -74,27 +74,23 @@ export function EvidenceList({
                   )}
                 </div>
                 {item.description && (
-                  <p className="mt-1 text-sm text-gray-600 whitespace-pre-wrap">
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-gray-600">
                     {item.description}
                   </p>
                 )}
                 <p className="mt-1 text-xs text-gray-400">
-                  Added{' '}
-                  {new Date(item.uploadedAt).toLocaleString('en-US', {
-                    dateStyle: 'medium',
-                    timeStyle: 'short',
-                  })}
+                  Added {formatDateTime(item.uploadedAt)}
                   {item.uploadedBy && ` · by ${item.uploadedBy.name}`}
                 </p>
 
-                <div className="mt-2 flex items-center gap-2 flex-wrap">
+                <div className="mt-2 flex flex-wrap items-center gap-2">
                   {item.hasFile && (
                     <>
                       <a
                         href={`/api/evidence/${item.evidenceId}/download`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                        className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white/70 px-2 py-1 text-xs font-medium text-gray-700 transition hover:bg-white"
                       >
                         <Eye className="h-3 w-3" />
                         Preview
@@ -102,7 +98,7 @@ export function EvidenceList({
                       <a
                         href={`/api/evidence/${item.evidenceId}/download`}
                         download={item.fileName}
-                        className="inline-flex items-center gap-1 rounded-md border border-blue-300 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100"
+                        className="inline-flex items-center gap-1 rounded-md border border-blue-300 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
                       >
                         <Download className="h-3 w-3" />
                         Download

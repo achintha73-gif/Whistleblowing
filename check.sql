@@ -1,0 +1,1 @@
+SELECT COUNT(*) AS has_note FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'case_status_history' AND COLUMN_NAME = 'note' AND TABLE_SCHEMA = 'defaultdb';

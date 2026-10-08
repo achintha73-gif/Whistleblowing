@@ -2,7 +2,8 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Pencil } from 'lucide-react';
+import { Plus, Pencil, Loader2 } from 'lucide-react';
+import { formatDateTime } from '@/lib/date-format';
 import type { InvestigationReportDTO } from '../types';
 
 export function ReportPanel({
@@ -52,7 +53,6 @@ export function ReportPanel({
     }
   }
 
-  // Show form
   if (editing) {
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -61,13 +61,13 @@ export function ReportPanel({
         </h2>
 
         {error && (
-          <div className="rounded-md bg-red-50 border border-red-200 p-2 text-xs text-red-700">
+          <div className="rounded-xl border border-red-200 bg-red-50 p-2 text-xs text-red-700">
             {error}
           </div>
         )}
 
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">
+          <label className="mb-1 block text-xs font-medium text-gray-700">
             Findings <span className="text-red-500">*</span>
           </label>
           <textarea
@@ -76,13 +76,13 @@ export function ReportPanel({
             value={findings}
             onChange={(e) => setFindings(e.target.value)}
             placeholder="Summarize what you discovered during the investigation."
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-xl border border-gray-200 bg-white/70 px-3 py-2 text-sm text-gray-900 transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10"
           />
           <p className="mt-1 text-xs text-gray-500">Minimum 20 characters.</p>
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">
+          <label className="mb-1 block text-xs font-medium text-gray-700">
             Recommendation <span className="text-red-500">*</span>
           </label>
           <textarea
@@ -91,33 +91,39 @@ export function ReportPanel({
             value={recommendation}
             onChange={(e) => setRecommendation(e.target.value)}
             placeholder="Recommend next steps: escalation, disciplinary action, policy change, or closure."
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-xl border border-gray-200 bg-white/70 px-3 py-2 text-sm text-gray-900 transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10"
           />
           <p className="mt-1 text-xs text-gray-500">Minimum 10 characters.</p>
         </div>
 
-        <div className="flex gap-2 justify-end">
+        <div className="flex justify-end gap-2">
           <button
             type="button"
             onClick={() => setEditing(false)}
             disabled={loading}
-            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-60"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="rounded-md bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:bg-blue-400"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-1.5 text-xs font-semibold text-white shadow-md shadow-blue-500/30 transition hover:from-blue-700 hover:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? 'Saving...' : 'Save Report'}
+            {loading ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              'Save Report'
+            )}
           </button>
         </div>
       </form>
     );
   }
 
-  // Show report (or empty state)
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -128,7 +134,7 @@ export function ReportPanel({
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-md shadow-blue-500/30 transition hover:from-blue-700 hover:to-indigo-700"
           >
             {report ? (
               <>
@@ -146,7 +152,7 @@ export function ReportPanel({
       </div>
 
       {!report ? (
-        <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+        <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-white/50 p-8 text-center">
           <p className="text-sm text-gray-500">
             {canEdit
               ? 'No report has been written yet. Click "Write Report" to begin.'
@@ -156,27 +162,23 @@ export function ReportPanel({
       ) : (
         <div className="space-y-4">
           <div>
-            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+            <h3 className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
               Findings
             </h3>
-            <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">
               {report.findings}
             </p>
           </div>
           <div>
-            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+            <h3 className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
               Recommendation
             </h3>
-            <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">
               {report.recommendation}
             </p>
           </div>
           <p className="text-xs text-gray-400">
-            Submitted{' '}
-            {new Date(report.createdAt).toLocaleString('en-US', {
-              dateStyle: 'medium',
-              timeStyle: 'short',
-            })}
+            Submitted {formatDateTime(report.createdAt)}
           </p>
         </div>
       )}

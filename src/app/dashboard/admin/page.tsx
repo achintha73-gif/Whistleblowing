@@ -10,6 +10,7 @@ import {
   Settings as SettingsIcon,
   ScrollText,
 } from 'lucide-react';
+import { formatDate } from '@/lib/date-format';
 import { getAdminStats } from '@/features/users/services/user-management.service';
 import { EdukaStatCard } from '@/features/complaints/components/EdukaStatCard';
 import {
@@ -173,11 +174,7 @@ export default async function AdminDashboardPage() {
                           </div>
                           <p className="mt-1 text-xs text-gray-400">
                             Joined{' '}
-                            {new Date(u.createdAt).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })}
+                            {formatDate(u.createdAt)}
                           </p>
                         </div>
                         <ArrowRight className="h-4 w-4 shrink-0 text-gray-300 transition group-hover:translate-x-0.5 group-hover:text-blue-600" />

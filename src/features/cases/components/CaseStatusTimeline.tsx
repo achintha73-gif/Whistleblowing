@@ -1,10 +1,13 @@
 import { CaseStatusBadge } from './CaseStatusBadge';
+import { Info } from 'lucide-react';
+import { formatDateTime } from '@/lib/date-format';
 import type { CaseStatus } from '../types';
 
 interface HistoryEntry {
   history_id: number;
   status: string;
   changed_at: Date;
+  note?: string | null;
   changedBy: {
     user_id: number;
     name: string;
@@ -14,7 +17,7 @@ interface HistoryEntry {
 export function CaseStatusTimeline({ history }: { history: HistoryEntry[] }) {
   if (history.length === 0) {
     return (
-      <p className="text-sm text-gray-500 italic">No status history yet.</p>
+      <p className="text-sm italic text-gray-500">No status history yet.</p>
     );
   }
 
@@ -33,13 +36,10 @@ export function CaseStatusTimeline({ history }: { history: HistoryEntry[] }) {
               {!isLast && <div className="mt-1 w-0.5 flex-1 bg-gray-200" />}
             </div>
             <div className="flex-1 pb-2">
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex flex-wrap items-center gap-2">
                 <CaseStatusBadge status={entry.status as CaseStatus} />
                 <span className="text-xs text-gray-500">
-                  {new Date(entry.changed_at).toLocaleString('en-US', {
-                    dateStyle: 'medium',
-                    timeStyle: 'short',
-                  })}
+                  {formatDateTime(entry.changed_at)}
                 </span>
               </div>
               <div className="mt-1 text-xs text-gray-600">
@@ -48,6 +48,14 @@ export function CaseStatusTimeline({ history }: { history: HistoryEntry[] }) {
                   {entry.changedBy.name}
                 </span>
               </div>
+              {entry.note && (
+                <div className="mt-1.5 flex items-start gap-1.5 rounded-lg border border-blue-100 bg-blue-50/60 px-2.5 py-1.5">
+                  <Info className="mt-0.5 h-3 w-3 shrink-0 text-blue-600" />
+                  <span className="text-xs italic leading-relaxed text-blue-800">
+                    {entry.note}
+                  </span>
+                </div>
+              )}
             </div>
           </li>
         );

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
@@ -10,7 +10,9 @@ import {
   XCircle,
   MessageSquarePlus,
   AlertTriangle,
+  Loader2,
 } from 'lucide-react';
+import { formatDateTime } from '@/lib/date-format';
 
 interface AdditionalInfo {
   infoId: number;
@@ -70,16 +72,6 @@ const INFO_TYPE_LABELS: Record<string, string> = {
   SUPPORTING_INFO: 'Supporting Information',
   CORRECTION: 'Correction',
 };
-
-function formatDate(date: Date): string {
-  return new Date(date).toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
 
 export function TrackedComplaintView({ complaint }: { complaint: Complaint }) {
   const router = useRouter();
@@ -143,26 +135,29 @@ export function TrackedComplaintView({ complaint }: { complaint: Complaint }) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
+      {/* Main card */}
+      <div className="rounded-2xl border border-white/60 bg-white/60 p-6 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
               Reference Code
             </p>
             <p className="mt-1 font-mono text-lg font-bold text-gray-900">
               {complaint.referenceCode}
             </p>
-            <h1 className="mt-4 text-xl font-bold text-gray-900">
+            <h1 className="mt-4 text-xl font-bold tracking-tight text-gray-900">
               {complaint.title}
             </h1>
-            <div className="mt-2 flex items-center gap-3 text-xs text-gray-500">
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-500">
               {complaint.category && (
                 <>
-                  <span>{complaint.category}</span>
-                  <span>|</span>
+                  <span className="rounded-md bg-white/70 px-2 py-0.5">
+                    {complaint.category}
+                  </span>
+                  <span>·</span>
                 </>
               )}
-              <span>Submitted {formatDate(complaint.createdAt)}</span>
+              <span>Submitted {formatDateTime(complaint.createdAt)}</span>
             </div>
           </div>
 
@@ -174,18 +169,19 @@ export function TrackedComplaintView({ complaint }: { complaint: Complaint }) {
           </div>
         </div>
 
-        <div className="mt-6 rounded-lg border border-gray-100 bg-gray-50 p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+        <div className="mt-6 rounded-xl border border-white/60 bg-white/50 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
             Description
           </p>
-          <p className="mt-2 whitespace-pre-wrap text-sm text-gray-800">
+          <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-800">
             {complaint.description}
           </p>
         </div>
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+      {/* Additional Information card */}
+      <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/60 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
+        <div className="flex items-center justify-between border-b border-white/60 px-5 py-4">
           <div>
             <h2 className="text-base font-semibold text-gray-900">
               Additional Information
@@ -198,7 +194,7 @@ export function TrackedComplaintView({ complaint }: { complaint: Complaint }) {
           <button
             type="button"
             onClick={() => setShowForm(!showForm)}
-            className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-md shadow-blue-500/30 transition hover:from-blue-700 hover:to-indigo-700"
           >
             <MessageSquarePlus className="h-3.5 w-3.5" />
             {showForm ? 'Cancel' : 'Add Info'}
@@ -208,23 +204,23 @@ export function TrackedComplaintView({ complaint }: { complaint: Complaint }) {
         {showForm && (
           <form
             onSubmit={handleAddInfo}
-            className="space-y-4 border-b border-gray-100 bg-gray-50 p-5"
+            className="space-y-4 border-b border-white/60 bg-white/40 p-5"
           >
             {error && (
-              <div className="rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-700 flex items-start gap-2">
-                <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+              <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Information Type
               </label>
               <select
                 value={infoType}
                 onChange={(e) => setInfoType(e.target.value)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-xl border border-gray-200 bg-white/70 px-3 py-2 text-sm text-gray-900 transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10"
               >
                 <option value="ADDITIONAL_DETAILS">Additional Details</option>
                 <option value="CLARIFICATION">Clarification</option>
@@ -234,7 +230,7 @@ export function TrackedComplaintView({ complaint }: { complaint: Complaint }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Title
               </label>
               <input
@@ -244,12 +240,12 @@ export function TrackedComplaintView({ complaint }: { complaint: Complaint }) {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Brief title for your information"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-xl border border-gray-200 bg-white/70 px-3 py-2 text-sm text-gray-900 transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Description
               </label>
               <textarea
@@ -258,26 +254,33 @@ export function TrackedComplaintView({ complaint }: { complaint: Complaint }) {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Provide your additional information here..."
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-xl border border-gray-200 bg-white/70 px-3 py-2 text-sm text-gray-900 transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10"
               />
             </div>
 
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-500/30 transition hover:from-blue-700 hover:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting ? 'Submitting...' : 'Add Information'}
+              {submitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                'Add Information'
+              )}
             </button>
           </form>
         )}
 
         {complaint.additionalInfo.length === 0 ? (
           <div className="flex flex-col items-center justify-center px-5 py-10 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
-              <FileText className="h-6 w-6 text-gray-400" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+              <FileText className="h-6 w-6" />
             </div>
-            <p className="mt-3 text-sm font-medium text-gray-900">
+            <p className="mt-3 text-sm font-semibold text-gray-900">
               No additional information yet
             </p>
             <p className="mt-1 text-xs text-gray-500">
@@ -285,7 +288,7 @@ export function TrackedComplaintView({ complaint }: { complaint: Complaint }) {
             </p>
           </div>
         ) : (
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y divide-white/60">
             {complaint.additionalInfo.map((info) => (
               <li key={info.infoId} className="px-5 py-4">
                 <div className="flex items-start gap-3">
@@ -293,7 +296,7 @@ export function TrackedComplaintView({ complaint }: { complaint: Complaint }) {
                     <FileText className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-medium text-gray-900">
                         {info.title}
                       </p>
@@ -306,7 +309,7 @@ export function TrackedComplaintView({ complaint }: { complaint: Complaint }) {
                       {info.description}
                     </p>
                     <p className="mt-2 text-xs text-gray-400">
-                      {formatDate(info.submittedAt)}
+                      {formatDateTime(info.submittedAt)}
                     </p>
                   </div>
                 </div>

@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, X, SlidersHorizontal, UserCircle } from 'lucide-react';
+import { formatDate } from '@/lib/date-format';
 import type { UserListItem } from '../types';
 import { ROLE_BADGE_STYLES, STATUS_BADGE_STYLES } from '../badge-styles';
 import { UserActionsMenu } from './UserActionsMenu';
@@ -185,11 +186,7 @@ export function UserListTable({ users }: { users: UserListItem[] }) {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
-                      {new Date(u.createdAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
+                      {formatDate(u.createdAt)}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <UserActionsMenu user={u} />

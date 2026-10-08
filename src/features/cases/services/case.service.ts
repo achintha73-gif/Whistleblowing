@@ -228,14 +228,171 @@ export async function assignInvestigatorToCase(
     return { success: false, error: 'Investigator is not active' };
   }
 
+  // Assign investigator
   await caseRepo.assignInvestigator(caseId, investigatorId);
 
+  // Auto-advance status from OPEN to INVESTIGATING
+  const currentStatus = caseRow.status as CaseStatus;
+  const shouldAdvance = currentStatus === 'OPEN';
+
+  if (shouldAdvance) {
+    await caseRepo.updateCaseStatus(caseId, 'INVESTIGATING');
+    await caseRepo.addStatusHistory({
+      case_id: caseId,
+      status: 'INVESTIGATING',
+      changed_by: user.userId,
+    });
+  }
+
+  // Notify the investigator
   await notifyUser(
     investigatorId,
     `You have been assigned to Case #${caseId}: ${caseRow.complaint.title}`
   );
 
+  // Notify manager of the case (if any) that assignment happened
+  const managerId = await getManagerForCase(caseId);
+  if (managerId && managerId !== user.userId) {
+    await notifyUser(
+      managerId,
+      `Case #${caseId} has been assigned to ${investigator.name}${
+        shouldAdvance ? ' and moved to Investigating' : ''
+      }`
+    );
+  }
+
   return { success: true };
+}
+// -------------------------------------------------------------
+// Multi-investigator assign (used by the checkbox UI)
+// -------------------------------------------------------------
+
+export async function setCaseInvestigatorsForUser(
+  user: SafeUser,
+  caseId: number,
+  investigatorIds: number[]
+): Promise<
+  | { success: true; added: number[]; removed: number[] }
+  | { success: false; error: string }
+> {
+  if (user.roleName !== 'MANAGER') {
+    return { success: false, error: 'Only managers can assign investigators' };
+  }
+
+  const caseRow = await caseRepo.findCaseById(caseId);
+  if (!caseRow) return { success: false, error: 'Case not found' };
+
+  // Validate all investigator IDs
+  const uniqueIds = Array.from(new Set(investigatorIds));
+
+  if (uniqueIds.length > 0) {
+    const investigators = await prisma.user.findMany({
+      where: { user_id: { in: uniqueIds } },
+      include: { role: true },
+    });
+
+    if (investigators.length !== uniqueIds.length) {
+      return { success: false, error: 'One or more investigators not found' };
+    }
+
+    for (const inv of investigators) {
+      if (inv.role.role_name !== 'INVESTIGATOR') {
+        return {
+          success: false,
+          error: `${inv.name} is not an investigator`,
+        };
+      }
+      if (inv.status !== 'ACTIVE') {
+        return {
+          success: false,
+          error: `${inv.name} is not active`,
+        };
+      }
+    }
+  }
+
+  // Snapshot before (with names)
+  const before = await caseRepo.listCaseInvestigators(caseId);
+  const beforeMap = new Map(before.map((i) => [i.userId, i.name]));
+  const beforeIds = before.map((i) => i.userId);
+
+  // Apply changes
+  await caseRepo.setCaseInvestigators(caseId, uniqueIds);
+
+  // Snapshot after (with names)
+  const after = await caseRepo.listCaseInvestigators(caseId);
+  const afterMap = new Map(after.map((i) => [i.userId, i.name]));
+  const afterIds = after.map((i) => i.userId);
+
+  const added = afterIds.filter((id) => !beforeIds.includes(id));
+  const removed = beforeIds.filter((id) => !afterIds.includes(id));
+
+  const addedNames = added.map((id) => afterMap.get(id) ?? `#${id}`);
+  const removedNames = removed.map((id) => beforeMap.get(id) ?? `#${id}`);
+
+  // Auto-advance OPEN -> INVESTIGATING when first investigator assigned
+  const currentStatus = caseRow.status as CaseStatus;
+  const shouldAdvance = currentStatus === 'OPEN' && after.length > 0;
+
+  if (shouldAdvance) {
+    await caseRepo.updateCaseStatus(caseId, 'INVESTIGATING');
+    await caseRepo.addStatusHistory({
+      case_id: caseId,
+      status: 'INVESTIGATING',
+      changed_by: user.userId,
+      note:
+        addedNames.length > 0
+          ? `Investigator assigned: ${addedNames.join(', ')}`
+          : null,
+    });
+  } else if (added.length > 0 || removed.length > 0) {
+    // Log investigator change under the CURRENT status (no status change)
+    await caseRepo.addStatusHistory({
+      case_id: caseId,
+      status: currentStatus,
+      changed_by: user.userId,
+      note: [
+        addedNames.length > 0
+          ? `Investigator assigned: ${addedNames.join(', ')}`
+          : null,
+        removedNames.length > 0
+          ? `Investigator removed: ${removedNames.join(', ')}`
+          : null,
+      ]
+        .filter(Boolean)
+        .join(' · '),
+    });
+  }
+
+  // Notify newly added investigators
+  for (const id of added) {
+    await notifyUser(
+      id,
+      `You have been assigned to Case #${caseId}: ${caseRow.complaint.title}`
+    );
+  }
+
+  // Notify removed investigators
+  for (const id of removed) {
+    await notifyUser(
+      id,
+      `You have been removed from Case #${caseId}: ${caseRow.complaint.title}`
+    );
+  }
+
+  // Notify the department manager (if any)
+  const managerId = await getManagerForCase(caseId);
+  if (managerId && managerId !== user.userId && (added.length || removed.length)) {
+    const parts: string[] = [];
+    if (added.length) parts.push(`${added.length} added`);
+    if (removed.length) parts.push(`${removed.length} removed`);
+    await notifyUser(
+      managerId,
+      `Case #${caseId} investigators updated (${parts.join(', ')})`
+    );
+  }
+
+  return { success: true, added, removed };
 }
 
 // Update Status (MANAGER or INVESTIGATOR)
@@ -294,7 +451,7 @@ export async function updateCaseStatusForUser(
     );
   }
 
-  // Notify the manager — but only if an INVESTIGATOR made the change
+  // Notify the manager ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â but only if an INVESTIGATOR made the change
   if (user.roleName === 'INVESTIGATOR') {
     const managerId = await getManagerForCase(caseId);
     await notifyUser(

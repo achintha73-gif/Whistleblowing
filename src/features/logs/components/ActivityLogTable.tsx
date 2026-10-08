@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import type { LogEntry, LogEventType } from '../types';
 import { LOG_EVENT_LABELS } from '../types';
+import { formatDateTime } from '@/lib/date-format';
 
 const TYPE_META: Record<
   LogEventType,
@@ -68,16 +69,7 @@ const FILTER_ORDER: LogEventType[] = [
   'USER_CREATED',
 ];
 
-function formatDateTime(date: Date): string {
-  const d = new Date(date);
-  return d.toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
+
 
 export function ActivityLogTable({ entries }: { entries: LogEntry[] }) {
   const [search, setSearch] = useState('');

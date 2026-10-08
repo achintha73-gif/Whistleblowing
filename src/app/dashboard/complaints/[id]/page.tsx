@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { ArrowLeft } from 'lucide-react';
+import { formatDateTime } from '@/lib/date-format';
 import { ComplaintStatusBadge } from '@/features/complaints/components/ComplaintStatusBadge';
 import {
   getComplaintForUser,
@@ -37,11 +38,7 @@ export default async function ComplaintDetailPage({
     notFound();
   }
 
-  const additionalInfo = await getAdditionalInfoForComplaint(
-    user,
-    complaintId
-  );
-
+  const additionalInfo = await getAdditionalInfoForComplaint(user, complaintId);
   const evidence = await getEvidenceForComplaint(user, complaintId);
 
   const deletableIds: number[] = [];
@@ -56,7 +53,6 @@ export default async function ComplaintDetailPage({
     complaint.author?.userId === user.userId;
 
   const canAddEvidence = user.roleName === 'USER';
-
   const canDelete = await canDeleteComplaint(user, complaintId);
 
   return (
@@ -80,7 +76,6 @@ export default async function ComplaintDetailPage({
 
       {/* Complaint header — glass */}
       <div className="rounded-2xl border border-white/60 bg-white/60 p-6 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
-        {/* Title + badge — stack on mobile */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 flex-1">
             <h1 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">
@@ -138,10 +133,7 @@ export default async function ComplaintDetailPage({
               Submitted at
             </div>
             <div className="mt-1 text-gray-900">
-              {new Date(complaint.createdAt).toLocaleString('en-US', {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-              })}
+              {formatDateTime(complaint.createdAt)}
             </div>
           </div>
         </div>

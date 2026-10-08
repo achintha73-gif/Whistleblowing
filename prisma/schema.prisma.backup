@@ -212,7 +212,6 @@ model CaseStatusHistory {
   changed_at DateTime   @default(now())
   changed_by Int
   case_id    Int
-  note       String?    @db.Text
 
   changedBy User @relation(fields: [changed_by], references: [user_id], onDelete: Restrict)
   case      Case @relation(fields: [case_id], references: [case_id], onDelete: Cascade)
