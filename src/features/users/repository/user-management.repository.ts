@@ -145,3 +145,131 @@ export async function countAllUsers(): Promise<number> {
 export async function countAllDepartments(): Promise<number> {
   return prisma.department.count();
 }
+
+// -------------------------------------------------------------
+// Department CRUD (Admin)
+// -------------------------------------------------------------
+
+/**
+ * List all departments with manager info + user count.
+ */
+export async function listAllDepartmentsForAdmin() {
+  return prisma.department.findMany({
+    orderBy: { department_name: 'asc' },
+    include: {
+      manager: {
+        select: {
+          user_id: true,
+          name: true,
+          email: true,
+        },
+      },
+      _count: {
+        select: { users: true },
+      },
+    },
+  });
+}
+
+/**
+ * Find a department by id.
+ */
+export async function findDepartmentById(departmentId: number) {
+  return prisma.department.findUnique({
+    where: { department_id: departmentId },
+    include: {
+      manager: {
+        select: { user_id: true, name: true, email: true },
+      },
+      _count: {
+        select: { users: true },
+      },
+    },
+  });
+}
+
+/**
+ * Check if a department name already exists (optionally excluding an id).
+ */
+export async function departmentNameExists(
+  name: string,
+  excludeId?: number
+) {
+  const found = await prisma.department.findFirst({
+    where: {
+      department_name: name,
+      ...(excludeId ? { NOT: { department_id: excludeId } } : {}),
+    },
+    select: { department_id: true },
+  });
+  return found !== null;
+}
+
+/**
+ * Create a new department.
+ */
+export async function createDepartment(data: {
+  department_name: string;
+  description: string | null;
+  manager_id: number | null;
+  status: string;
+}) {
+  return prisma.department.create({
+    data,
+    include: {
+      manager: {
+        select: { user_id: true, name: true, email: true },
+      },
+      _count: {
+        select: { users: true },
+      },
+    },
+  });
+}
+
+/**
+ * Update a department.
+ */
+export async function updateDepartment(
+  departmentId: number,
+  data: {
+    department_name?: string;
+    description?: string | null;
+    manager_id?: number | null;
+    status?: string;
+  }
+) {
+  return prisma.department.update({
+    where: { department_id: departmentId },
+    data,
+    include: {
+      manager: {
+        select: { user_id: true, name: true, email: true },
+      },
+      _count: {
+        select: { users: true },
+      },
+    },
+  });
+}
+
+/**
+ * Delete a department.
+ * NOTE: Users referencing it get department_id set to null (onDelete: SetNull).
+ */
+export async function deleteDepartment(departmentId: number) {
+  return prisma.department.delete({
+    where: { department_id: departmentId },
+  });
+}
+
+/**
+ * Count users in a department (for delete warning).
+ */
+export async function countUsersInDepartment(
+  departmentId: number
+): Promise<number> {
+  return prisma.user.count({
+    where: { department_id: departmentId },
+  });
+}

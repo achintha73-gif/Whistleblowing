@@ -28,3 +28,33 @@ export interface UpdateUserRoleInput {
   userId: number;
   roleId: number;
 }
+
+// -------------------------------------------------------------
+// Department Types
+// -------------------------------------------------------------
+
+export interface DepartmentDTO {
+  departmentId: number;
+  departmentName: string;
+  description: string | null;
+  status: string;
+  managerId: number | null;
+  managerName: string | null;
+  managerEmail: string | null;
+  userCount: number;
+  createdAt: Date;
+}
+
+export interface CreateDepartmentInput {
+  departmentName: string;
+  description?: string | null;
+  managerId?: number | null;
+  status?: string;
+}
+
+export interface UpdateDepartmentInput {
+  departmentName?: string;
+  description?: string | null;
+  managerId?: number | null;
+  status?: string;
+}

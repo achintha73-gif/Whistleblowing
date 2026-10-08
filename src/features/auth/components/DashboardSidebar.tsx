@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Home,
+  Building2,
   PlusCircle,
   ListChecks,
   Bell,
@@ -71,6 +72,7 @@ const MENU_BY_ROLE: Record<RoleName, MenuSection[]> = {
       items: [
         { href: '/dashboard/admin', label: 'Dashboard', icon: Home, exact: true },
         { href: '/dashboard/users', label: 'Users', icon: Users },
+        { href: '/dashboard/departments', label: 'Departments', icon: Building2 },
         { href: '/dashboard/notifications', label: 'Notifications', icon: Bell, badge: 'notifications' },
       ],
     },
@@ -113,7 +115,6 @@ export function DashboardSidebar({
           : 'h-full w-64 shrink-0 border-r border-white/40'
       }`}
     >
-      {/* Mobile header: logo + close */}
       {isMobile && (
         <div className="flex shrink-0 items-center justify-between border-b border-white/40 px-4 py-3">
           <Link href="/dashboard" className="flex items-center gap-2.5">
@@ -200,7 +201,6 @@ export function DashboardSidebar({
         ))}
       </nav>
 
-      {/* Bottom: Profile + Support + Logout */}
       <div className="border-t border-white/40 p-4 space-y-1">
         <Link
           href="/dashboard/profile"
