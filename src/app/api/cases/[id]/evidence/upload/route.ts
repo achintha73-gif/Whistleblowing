@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
-import { randomUUID } from 'crypto';
 import { requireAuth, UnauthorizedError } from '@/lib/auth';
 import { addEvidenceWithFile } from '@/features/evidence/services/evidence.service';
+import { uploadFile } from '@/lib/file-storage';
+
+/**
+ * POST /api/cases/:id/evidence/upload
+ *
+ * Uploads investigator evidence for a case to Vercel Blob.
+ * Blob URL is persisted in `evidence.file_path`.
+ */
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
@@ -12,6 +17,25 @@ const ALLOWED_EXTENSIONS = [
   '.jpg', '.jpeg', '.png', '.gif', '.webp',
   '.mp4', '.webm', '.mov',
 ];
+
+const MIME_TYPES: Record<string, string> = {
+  '.pdf': 'application/pdf',
+  '.doc': 'application/msword',
+  '.docx':
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.txt': 'text/plain',
+  '.csv': 'text/csv',
+  '.xlsx':
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.mp4': 'video/mp4',
+  '.webm': 'video/webm',
+  '.mov': 'video/quicktime',
+};
 
 function sanitizeFileName(name: string): string {
   return name
@@ -73,14 +97,16 @@ export async function POST(
       );
     }
 
-    const uuid = randomUUID();
+    // Upload to Vercel Blob
+    const uuid = crypto.randomUUID();
     const safeName = sanitizeFileName(file.name);
-    const storedName = `${uuid}-${safeName}`;
-    const uploadDir = join(process.cwd(), 'private-uploads');
-    const filePathOnDisk = join(uploadDir, storedName);
+    const storedName = `case-evidence/${uuid}-${safeName}`;
 
     const arrayBuffer = await file.arrayBuffer();
-    await writeFile(filePathOnDisk, Buffer.from(arrayBuffer));
+    const buffer = Buffer.from(arrayBuffer);
+    const contentType = MIME_TYPES[ext] ?? 'application/octet-stream';
+
+    const fileUrl = await uploadFile(buffer, storedName, contentType);
 
     const result = await addEvidenceWithFile(user, {
       caseId,
@@ -91,7 +117,7 @@ export async function POST(
         typeof description === 'string' && description.trim()
           ? description.trim()
           : null,
-      filePath: storedName,
+      filePath: fileUrl,
     });
 
     if (!result.success) {

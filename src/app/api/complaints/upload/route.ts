@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
-import { randomUUID } from 'crypto';
 import { requireAuth, UnauthorizedError } from '@/lib/auth';
 import { addComplaintEvidence } from '@/features/evidence/services/evidence.service';
 import { prisma } from '@/lib/db';
+import { uploadFile } from '@/lib/file-storage';
 
 /**
  * POST /api/complaints/upload
@@ -16,8 +14,8 @@ import { prisma } from '@/lib/db';
  *   - description?: string
  *
  * Uploads a file attached to a complaint (employee-submitted).
- * The employee must own the complaint OR the complaint must be
- * their own (even if anonymous).
+ * Files are stored in Vercel Blob (production) - the returned URL
+ * is persisted in `evidence.file_path`.
  */
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -27,6 +25,25 @@ const ALLOWED_EXTENSIONS = [
   '.jpg', '.jpeg', '.png', '.gif', '.webp',
   '.mp4', '.webm', '.mov',
 ];
+
+const MIME_TYPES: Record<string, string> = {
+  '.pdf': 'application/pdf',
+  '.doc': 'application/msword',
+  '.docx':
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.txt': 'text/plain',
+  '.csv': 'text/csv',
+  '.xlsx':
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.mp4': 'video/mp4',
+  '.webm': 'video/webm',
+  '.mov': 'video/quicktime',
+};
 
 function sanitizeFileName(name: string): string {
   return name
@@ -83,8 +100,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Employee must own the complaint (they submitted it while logged in,
-    // even if marked anonymous)
     if (user.roleName === 'USER' && complaint.user_id !== user.userId) {
       return NextResponse.json(
         { error: 'You can only attach files to your own complaints' },
@@ -92,7 +107,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Only USER role can upload complaint evidence
     if (user.roleName !== 'USER') {
       return NextResponse.json(
         { error: 'Only employees can attach files to complaints' },
@@ -122,15 +136,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Save file to disk
-    const uuid = randomUUID();
+    // Upload to Vercel Blob
+    const uuid = crypto.randomUUID();
     const safeName = sanitizeFileName(file.name);
-    const storedName = `${uuid}-${safeName}`;
-    const uploadDir = join(process.cwd(), 'private-uploads');
-    const filePathOnDisk = join(uploadDir, storedName);
+    const storedName = `complaint-evidence/${uuid}-${safeName}`;
 
     const arrayBuffer = await file.arrayBuffer();
-    await writeFile(filePathOnDisk, Buffer.from(arrayBuffer));
+    const buffer = Buffer.from(arrayBuffer);
+    const contentType = MIME_TYPES[ext] ?? 'application/octet-stream';
+
+    const fileUrl = await uploadFile(buffer, storedName, contentType);
 
     // Determine file type (explicit > inferred)
     const fileType =
@@ -143,14 +158,14 @@ export async function POST(request: NextRequest) {
         ? descriptionRaw.trim()
         : null;
 
-    // Create evidence row linked to complaint
+    // Create evidence row with blob URL
     const result = await addComplaintEvidence({
       complaintId,
       fileName: file.name,
       fileType,
       fileSize: file.size,
       description,
-      filePath: storedName,
+      filePath: fileUrl,
       uploadedBy: user.userId,
     });
 

@@ -1,38 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile } from 'fs/promises';
-import { join } from 'path';
+import { head } from '@vercel/blob';
 import { requireAuth, UnauthorizedError } from '@/lib/auth';
 import { getEvidenceByIdForUser } from '@/features/evidence/services/evidence.service';
 
 /**
  * GET /api/evidence/:id/download
- * Streams the evidence file after checking permissions.
+ *
+ * Auth check first, then fetch the blob from Vercel Blob storage.
+ * Private blobs cannot be accessed directly, so we stream them
+ * back to the authenticated user.
  */
-
-const MIME_TYPES: Record<string, string> = {
-  '.pdf': 'application/pdf',
-  '.doc': 'application/msword',
-  '.docx':
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  '.txt': 'text/plain',
-  '.csv': 'text/csv',
-  '.xlsx':
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.png': 'image/png',
-  '.gif': 'image/gif',
-  '.webp': 'image/webp',
-  '.mp4': 'video/mp4',
-  '.webm': 'video/webm',
-  '.mov': 'video/quicktime',
-};
-
-function getMimeType(fileName: string): string {
-  const idx = fileName.lastIndexOf('.');
-  const ext = idx >= 0 ? fileName.slice(idx).toLowerCase() : '';
-  return MIME_TYPES[ext] ?? 'application/octet-stream';
-}
 
 export async function GET(
   _request: NextRequest,
@@ -64,37 +41,59 @@ export async function GET(
       );
     }
 
-    const filePathOnDisk = join(
-      process.cwd(),
-      'private-uploads',
-      evidence.filePath
-    );
+    // Blob URL case - fetch from Vercel Blob
+    if (evidence.filePath.startsWith('https://')) {
+      try {
+        // head() gives us the blob metadata + downloadable URL
+        const blobMeta = await head(evidence.filePath);
 
-    let fileBuffer: Buffer;
-    try {
-      fileBuffer = await readFile(filePathOnDisk);
-    } catch {
-      return NextResponse.json(
-        { error: 'File not found on server' },
-        { status: 404 }
-      );
+        // Private blobs require auth headers on download;
+        // the blob URL can be streamed via server-side fetch using
+        // the BLOB_READ_WRITE_TOKEN.
+        const blobRes = await fetch(blobMeta.url, {
+          headers: {
+            Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
+          },
+        });
+
+        if (!blobRes.ok) {
+          return NextResponse.json(
+            { error: 'File not found in storage' },
+            { status: 404 }
+          );
+        }
+
+        const fileBuffer = await blobRes.arrayBuffer();
+
+        return new NextResponse(fileBuffer, {
+          status: 200,
+          headers: {
+            'Content-Type':
+              blobMeta.contentType ?? 'application/octet-stream',
+            'Content-Length': String(blobMeta.size),
+            'Content-Disposition': `inline; filename="${encodeURIComponent(
+              evidence.fileName
+            )}"`,
+            'Cache-Control': 'private, max-age=0, must-revalidate',
+          },
+        });
+      } catch (err) {
+        console.error('[evidence/download] Blob fetch failed:', err);
+        return NextResponse.json(
+          { error: 'File not found in storage' },
+          { status: 404 }
+        );
+      }
     }
 
-    const mimeType = getMimeType(evidence.fileName);
-
-    // Convert Node Buffer to Uint8Array for NextResponse
-    const fileBytes = new Uint8Array(fileBuffer);
-
-    return new NextResponse(fileBytes, {
-      status: 200,
-      headers: {
-        'Content-Type': mimeType,
-        'Content-Length': String(fileBuffer.length),
-        'Content-Disposition': `inline; filename="${encodeURIComponent(
-          evidence.fileName
-        )}"`,
+    // Legacy local file path (from before migration)
+    return NextResponse.json(
+      {
+        error:
+          'This file was stored before the storage migration. Please re-upload.',
       },
-    });
+      { status: 410 }
+    );
   } catch (err) {
     if (err instanceof UnauthorizedError) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });

@@ -177,6 +177,7 @@ export default async function CaseDetailPage({
         <UpdateStatusPanel
           caseId={caseDetail.caseId}
           currentStatus={caseDetail.status}
+          viewerRole={user.roleName}
         />
       )}
 
