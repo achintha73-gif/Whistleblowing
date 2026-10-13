@@ -68,15 +68,15 @@ export default async function UserDashboardPage() {
           value={stats.total}
           accent="blue"
           icon={<FileText className="h-5 w-5" />}
-          miniLabel="Submitted"
-          miniValue={stats.total}
+          miniLabel="Last 30 days"
+          miniValue={stats.last30Days}
         />
         <EdukaStatCard
           label="Pending"
           value={stats.pending}
           accent="orange"
           icon={<Clock className="h-5 w-5" />}
-          miniLabel="Awaiting review"
+          miniLabel={stats.oldestPendingDays !== null ? `Oldest: ${stats.oldestPendingDays}d` : "None pending"}
           miniValue={stats.pending}
         />
         <EdukaStatCard
@@ -84,7 +84,7 @@ export default async function UserDashboardPage() {
           value={stats.underReview}
           accent="purple"
           icon={<Search className="h-5 w-5" />}
-          miniLabel="Being investigated"
+          miniLabel="In progress"
           miniValue={stats.underReview}
         />
         <EdukaStatCard
@@ -92,7 +92,7 @@ export default async function UserDashboardPage() {
           value={resolvedCount}
           accent="green"
           icon={<CheckCircle className="h-5 w-5" />}
-          miniLabel="Closed / converted"
+          miniLabel={`${resolutionRate}% rate`}
           miniValue={resolvedCount}
         />
       </div>

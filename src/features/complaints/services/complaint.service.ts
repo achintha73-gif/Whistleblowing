@@ -182,13 +182,21 @@ export interface UserComplaintStats {
   rejected: number;
   convertedToCase: number;
   recent: ComplaintSummary[];
+  /** Complaints created in the last 30 days */
+  last30Days: number;
+  /** Days since the oldest pending complaint; null if none */
+  oldestPendingDays: number | null;
 }
 
 export async function getUserComplaintStats(
   user: SafeUser
 ): Promise<UserComplaintStats> {
-  const counts = await repo.countUserComplaintsByStatus(user.userId);
-  const recentRows = await repo.getRecentUserComplaints(user.userId, 5);
+  const [counts, recentRows, last30Days, oldestPending] = await Promise.all([
+    repo.countUserComplaintsByStatus(user.userId),
+    repo.getRecentUserComplaints(user.userId, 5),
+    repo.countUserComplaintsLast30Days(user.userId),
+    repo.getOldestPendingForUser(user.userId),
+  ]);
 
   const total =
     (counts.PENDING ?? 0) +
@@ -196,6 +204,13 @@ export async function getUserComplaintStats(
     (counts.APPROVED ?? 0) +
     (counts.REJECTED ?? 0) +
     (counts.CONVERTED_TO_CASE ?? 0);
+
+  const oldestPendingDays = oldestPending
+    ? Math.floor(
+        (Date.now() - new Date(oldestPending.created_at).getTime()) /
+          (1000 * 60 * 60 * 24)
+      )
+    : null;
 
   return {
     total,
@@ -205,6 +220,8 @@ export async function getUserComplaintStats(
     rejected: counts.REJECTED ?? 0,
     convertedToCase: counts.CONVERTED_TO_CASE ?? 0,
     recent: recentRows.map(toComplaintSummary),
+    last30Days,
+    oldestPendingDays,
   };
 }
 

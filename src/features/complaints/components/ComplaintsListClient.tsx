@@ -1,7 +1,16 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { Search, X, SlidersHorizontal, Inbox } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import {
+  Search,
+  X,
+  SlidersHorizontal,
+  Inbox,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from 'lucide-react';
 import { ComplaintCard } from './ComplaintCard';
 import { COMPLAINT_CATEGORIES } from '../types';
 import type { ComplaintSummary } from '../types';
@@ -15,6 +24,8 @@ const STATUS_OPTIONS = [
   { value: 'CONVERTED_TO_CASE', label: 'Converted to Case' },
 ];
 
+const PAGE_SIZE_OPTIONS = [5, 10, 15, 25, 50];
+
 export function ComplaintsListClient({
   complaints,
   showCreateCaseAction,
@@ -25,6 +36,8 @@ export function ComplaintsListClient({
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [status, setStatus] = useState('');
+  const [pageSize, setPageSize] = useState(5);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const filtered = useMemo(() => {
     return complaints.filter((c) => {
@@ -40,6 +53,18 @@ export function ComplaintsListClient({
     });
   }, [complaints, search, category, status]);
 
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, category, status, pageSize]);
+
+  // Pagination logic
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const startIdx = (safePage - 1) * pageSize;
+  const endIdx = startIdx + pageSize;
+  const paginated = filtered.slice(startIdx, endIdx);
+
   const hasFilters = !!(search || category || status);
 
   function clearFilters() {
@@ -48,12 +73,33 @@ export function ComplaintsListClient({
     setStatus('');
   }
 
+  // Generate page numbers (with ellipsis for many pages)
+  function getPageNumbers(): (number | 'ellipsis')[] {
+    const pages: (number | 'ellipsis')[] = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible + 2) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+      return pages;
+    }
+
+    pages.push(1);
+    const left = Math.max(2, safePage - 1);
+    const right = Math.min(totalPages - 1, safePage + 1);
+
+    if (left > 2) pages.push('ellipsis');
+    for (let i = left; i <= right; i++) pages.push(i);
+    if (right < totalPages - 1) pages.push('ellipsis');
+
+    pages.push(totalPages);
+    return pages;
+  }
+
   return (
     <div className="space-y-5">
       {/* Filters bar — glass */}
       <div className="rounded-2xl border border-white/60 bg-white/60 p-3 shadow-lg shadow-blue-900/5 backdrop-blur-xl sm:p-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          {/* Search */}
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
@@ -65,7 +111,6 @@ export function ComplaintsListClient({
             />
           </div>
 
-          {/* Category */}
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
@@ -79,7 +124,6 @@ export function ComplaintsListClient({
             ))}
           </select>
 
-          {/* Status */}
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
@@ -92,7 +136,6 @@ export function ComplaintsListClient({
             ))}
           </select>
 
-          {/* Clear */}
           {hasFilters && (
             <button
               type="button"
@@ -105,12 +148,16 @@ export function ComplaintsListClient({
           )}
         </div>
 
-        {/* Result count */}
         <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
           <SlidersHorizontal className="h-3.5 w-3.5" />
-          Showing <span className="font-semibold text-gray-700">{filtered.length}</span> of{' '}
-          <span className="font-semibold text-gray-700">{complaints.length}</span>{' '}
-          complaint{complaints.length === 1 ? '' : 's'}
+          Showing{' '}
+          <span className="font-semibold text-gray-700">
+            {filtered.length === 0 ? 0 : startIdx + 1}-
+            {Math.min(endIdx, filtered.length)}
+          </span>{' '}
+          of{' '}
+          <span className="font-semibold text-gray-700">{filtered.length}</span>{' '}
+          concern{filtered.length === 1 ? '' : 's'}
           {hasFilters && ' (filtered)'}
         </div>
       </div>
@@ -141,15 +188,110 @@ export function ComplaintsListClient({
           )}
         </div>
       ) : (
-        <div className="space-y-3">
-          {filtered.map((complaint) => (
-            <ComplaintCard
-              key={complaint.complaintId}
-              complaint={complaint}
-              showCreateCaseAction={showCreateCaseAction}
-            />
-          ))}
-        </div>
+        <>
+          <div className="space-y-3">
+            {paginated.map((complaint) => (
+              <ComplaintCard
+                key={complaint.complaintId}
+                complaint={complaint}
+                showCreateCaseAction={showCreateCaseAction}
+              />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {filtered.length > pageSize && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/60 bg-white/60 p-3 shadow-lg shadow-blue-900/5 backdrop-blur-xl sm:p-4">
+              {/* Rows per page */}
+              <div className="flex items-center gap-2 text-xs text-gray-600">
+                <span>Rows per page:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  className="rounded-lg border border-gray-200 bg-white/70 px-2 py-1 text-xs text-gray-900 transition focus:border-blue-500 focus:bg-white focus:outline-none"
+                >
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Page controls */}
+              <div className="flex flex-wrap items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(1)}
+                  disabled={safePage <= 1}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white/70 text-gray-600 transition hover:bg-white hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40"
+                  aria-label="First page"
+                >
+                  <ChevronsLeft className="h-3.5 w-3.5" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={safePage <= 1}
+                  className="flex h-8 items-center gap-1 rounded-lg border border-gray-200 bg-white/70 px-2.5 text-xs font-medium text-gray-600 transition hover:bg-white hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                  Prev
+                </button>
+
+                {/* Page numbers */}
+                <div className="flex items-center gap-1">
+                  {getPageNumbers().map((p, idx) =>
+                    p === 'ellipsis' ? (
+                      <span
+                        key={`ellipsis-${idx}`}
+                        className="flex h-8 w-8 items-center justify-center text-xs text-gray-400"
+                      >
+                        …
+                      </span>
+                    ) : (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setCurrentPage(p)}
+                        className={`flex h-8 min-w-[2rem] items-center justify-center rounded-lg px-2 text-xs font-medium transition ${
+                          safePage === p
+                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30'
+                            : 'border border-gray-200 bg-white/70 text-gray-600 hover:bg-white hover:text-gray-900'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    )
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={safePage >= totalPages}
+                  className="flex h-8 items-center gap-1 rounded-lg border border-gray-200 bg-white/70 px-2.5 text-xs font-medium text-gray-600 transition hover:bg-white hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Next
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={safePage >= totalPages}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white/70 text-gray-600 transition hover:bg-white hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40"
+                  aria-label="Last page"
+                >
+                  <ChevronsRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

@@ -125,3 +125,37 @@ export async function getRecentComplaintsByStatus(
     },
   });
 }
+
+// -------------------------------------------------------------
+// Dashboard stats helpers
+// -------------------------------------------------------------
+
+/**
+ * Count complaints for a user created in the last 30 days.
+ */
+export async function countUserComplaintsLast30Days(
+  userId: number
+): Promise<number> {
+  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  return prisma.complaint.count({
+    where: {
+      user_id: userId,
+      created_at: { gte: since },
+    },
+  });
+}
+
+/**
+ * Get the oldest pending complaint's created_at date for a user.
+ * Returns null if no pending complaints.
+ */
+export async function getOldestPendingForUser(userId: number) {
+  return prisma.complaint.findFirst({
+    where: {
+      user_id: userId,
+      status: 'PENDING',
+    },
+    orderBy: { created_at: 'asc' },
+    select: { created_at: true },
+  });
+}

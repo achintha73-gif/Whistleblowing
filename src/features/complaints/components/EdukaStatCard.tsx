@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 
 export type EdukaAccent =
   | 'green'
@@ -54,6 +56,7 @@ export function EdukaStatCard({
   icon,
   miniLabel,
   miniValue,
+  href,
 }: {
   label: string;
   value: number | string;
@@ -61,13 +64,14 @@ export function EdukaStatCard({
   icon: ReactNode;
   miniLabel?: string;
   miniValue?: number | string;
+  /** Optional link — makes the card clickable */
+  href?: string;
 }) {
   const styles = ACCENTS[accent];
+  const isClickable = !!href;
 
-  return (
-    <div
-      className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl ${styles.gradient} p-5 text-white ${styles.shadow} transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl`}
-    >
+  const content = (
+    <>
       {/* Glass sheen overlay */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-white/5" />
 
@@ -90,12 +94,32 @@ export function EdukaStatCard({
           className={`relative mt-4 flex items-center justify-between rounded-lg ${styles.miniBg} backdrop-blur-sm px-3 py-2 text-xs`}
         >
           <span className="text-white/90">{miniLabel ?? ''}</span>
-          <span className="font-semibold">{miniValue ?? ''}</span>
+          <span className="flex items-center gap-1 font-semibold">
+            {miniValue ?? ''}
+            {isClickable && (
+              <ArrowRight className="h-3 w-3 opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100" />
+            )}
+          </span>
         </div>
       )}
 
       {/* Decorative circle */}
       <div className="pointer-events-none absolute -bottom-8 -right-8 h-28 w-28 rounded-full bg-white/15" />
-    </div>
+    </>
   );
+
+  const baseClasses = `group relative flex flex-col justify-between overflow-hidden rounded-2xl ${styles.gradient} p-5 text-white ${styles.shadow} transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl`;
+
+  if (isClickable) {
+    return (
+      <Link
+        href={href}
+        className={`${baseClasses} cursor-pointer focus:outline-none focus:ring-4 focus:ring-blue-500/30`}
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return <div className={baseClasses}>{content}</div>;
 }
