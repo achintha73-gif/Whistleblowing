@@ -126,7 +126,7 @@ export function CasesListClient({
             {hasFilters
               ? 'Try changing your search or filters.'
               : isManager
-              ? 'Create a case from a complaint to get started.'
+              ? 'Create a case from a concern to get started.'
               : 'Assigned cases will appear here.'}
           </p>
           {hasFilters && (

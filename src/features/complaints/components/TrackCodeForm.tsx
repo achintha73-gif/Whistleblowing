@@ -84,7 +84,7 @@ export function TrackCodeForm() {
         className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition"
       >
         <Search className="h-4 w-4" />
-        {loading ? 'Searching...' : 'Track Complaint'}
+        {loading ? 'Searching...' : 'Track Concern'}
       </button>
     </form>
   );

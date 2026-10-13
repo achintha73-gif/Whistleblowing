@@ -73,7 +73,7 @@ export function AnonymousComplaintForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Failed to submit complaint');
+        setError(data.error || 'Failed to submit concern');
         setLoading(false);
         // Reset captcha so user can retry
         captchaRef.current?.reset();
@@ -105,7 +105,7 @@ export function AnonymousComplaintForm() {
             </h2>
             <p className="mt-1 text-xs text-blue-800">
               Your identity will not be recorded. After submitting, you will
-              receive a reference code to track your complaint.
+              receive a reference code to track your concern.
             </p>
           </div>
         </div>
@@ -213,7 +213,7 @@ export function AnonymousComplaintForm() {
           <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0 text-amber-600" />
           <p className="text-xs text-amber-800">
             <strong>Important:</strong> Save your reference code after
-            submitting. You&apos;ll need it to track your complaint status or
+            submitting. You&apos;ll need it to track your concern status or
             add additional information later.
           </p>
         </div>
@@ -224,7 +224,7 @@ export function AnonymousComplaintForm() {
         disabled={loading || !captchaToken}
         className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition"
       >
-        {loading ? 'Submitting...' : 'Submit Complaint Anonymously'}
+        {loading ? 'Submitting...' : 'Submit Concern Anonymously'}
       </button>
     </form>
   );

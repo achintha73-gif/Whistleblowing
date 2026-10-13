@@ -18,7 +18,7 @@ export function AnonymousLoginTab() {
             </h2>
             <p className="mt-1 text-xs text-blue-800">
               Your identity will be completely hidden. No login required. You
-              will receive a reference code to track your complaint.
+              will receive a reference code to track your concern.
             </p>
           </div>
         </div>
@@ -60,7 +60,7 @@ export function AnonymousLoginTab() {
           className="flex w-full items-center justify-center gap-1.5 text-sm font-medium text-gray-600 transition hover:text-blue-600"
         >
           <FileText className="h-3.5 w-3.5" />
-          Already submitted? Track your complaint
+          Already submitted? Track your concern
         </Link>
       </div>
 

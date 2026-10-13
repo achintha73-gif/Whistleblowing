@@ -3,9 +3,8 @@ import type { SafeUser } from '@/features/auth/types';
 import type { NotificationDTO } from '../types';
 import * as repo from '../repository/notification.repository';
 
-// -------------------------------------------------------------
+
 // Prisma -> DTO
-// -------------------------------------------------------------
 
 type PrismaNotificationRow = {
   notification_id: number;
@@ -24,9 +23,7 @@ export function toNotificationDTO(row: PrismaNotificationRow): NotificationDTO {
   };
 }
 
-// -------------------------------------------------------------
 // Create
-// -------------------------------------------------------------
 
 export async function notifyUser(
   userId: number | null,
@@ -46,9 +43,7 @@ export async function notifyUsers(
   await repo.createManyNotifications(rows);
 }
 
-// -------------------------------------------------------------
 // List / Count
-// -------------------------------------------------------------
 
 export async function getNotificationsForUser(
   user: SafeUser
@@ -61,9 +56,7 @@ export async function getUnreadCount(user: SafeUser): Promise<number> {
   return repo.countUnreadNotifications(user.userId);
 }
 
-// -------------------------------------------------------------
 // Mark as read
-// -------------------------------------------------------------
 
 export async function markNotificationRead(
   user: SafeUser,
@@ -79,10 +72,7 @@ export async function markAllNotificationsRead(
   await repo.markAllAsRead(user.userId);
   return { success: true };
 }
-
-// -------------------------------------------------------------
 // Helper: find the manager of a case's investigator
-// -------------------------------------------------------------
 
 /**
  * Find the manager who should be notified about a case.

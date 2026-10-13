@@ -28,7 +28,7 @@ export default async function AnonymousSuccessPage({
             href="/report"
             className="mt-4 inline-block rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
-            Submit a complaint
+            Submit a concern
           </Link>
         </div>
       </div>
@@ -58,7 +58,7 @@ export default async function AnonymousSuccessPage({
               Complaint submitted successfully
             </h1>
             <p className="mt-2 text-sm text-gray-700">
-              Thank you for your courage. Your complaint has been securely
+              Thank you for your courage. Your concern has been securely
               recorded.
             </p>
           </div>

@@ -79,7 +79,7 @@ export default async function CaseDetailPage({
               <CaseStatusBadge status={caseDetail.status} />
               <CasePriorityBadge priority={caseDetail.priority} />
               <span className="text-xs text-gray-500">
-                Case #{caseDetail.caseId} · Complaint #{caseDetail.complaintId}
+                Case #{caseDetail.caseId} · Concern #{caseDetail.complaintId}
               </span>
             </div>
           </div>

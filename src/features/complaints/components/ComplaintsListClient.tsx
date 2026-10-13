@@ -122,12 +122,12 @@ export function ComplaintsListClient({
             <Inbox className="h-7 w-7" />
           </div>
           <p className="mt-3 text-sm font-semibold text-gray-900">
-            {hasFilters ? 'No matching complaints' : 'No complaints yet'}
+            {hasFilters ? 'No matching concerns' : 'No concerns yet'}
           </p>
           <p className="mt-1 text-xs text-gray-500">
             {hasFilters
               ? 'Try changing your search or filters.'
-              : 'Complaints you submit will appear here.'}
+              : 'Concerns you submit will appear here.'}
           </p>
           {hasFilters && (
             <button

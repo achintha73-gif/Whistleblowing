@@ -99,7 +99,7 @@ export default async function TrackedComplaintPage({
                     Complaint not found
                   </h1>
                   <p className="mt-2 text-sm text-gray-600">
-                    We could not find a complaint with that reference code.
+                    We could not find a concern with that reference code.
                     Please double-check the code and try again.
                   </p>
                   <Link

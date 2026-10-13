@@ -13,6 +13,8 @@ import {
   FileText,
   Shield,
   Check,
+  CloudUpload,
+  FileCheck,
 } from 'lucide-react';
 import { COMPLAINT_CATEGORIES } from '../types';
 
@@ -103,7 +105,7 @@ export function SubmitComplaintForm() {
     }
 
     setLoading(true);
-    setProgress(files.length > 0 ? 'Creating complaint...' : null);
+    setProgress(files.length > 0 ? 'Creating concern...' : null);
 
     try {
       const res = await fetch('/api/complaints', {
@@ -119,7 +121,7 @@ export function SubmitComplaintForm() {
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Failed to submit complaint');
+        setError(data.error || 'Failed to submit concern');
         setLoading(false);
         setProgress(null);
         return;
@@ -163,9 +165,10 @@ export function SubmitComplaintForm() {
   const titleCount = title.length;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} noValidate className="space-y-6">
+      {/* Error message */}
       {error && (
-        <div className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700">
+        <div className="flex items-start gap-2.5 rounded-2xl border border-red-200 bg-red-50/80 px-4 py-3 text-sm text-red-700 shadow-sm backdrop-blur-sm">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
@@ -175,9 +178,11 @@ export function SubmitComplaintForm() {
       <div>
         <label
           htmlFor="title"
-          className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700"
+          className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-800"
         >
-          <Type className="h-3.5 w-3.5 text-gray-400" />
+          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 shadow-sm">
+            <Type className="h-3 w-3 text-white" />
+          </span>
           Title <span className="text-red-500">*</span>
         </label>
         <input
@@ -188,12 +193,20 @@ export function SubmitComplaintForm() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           disabled={loading}
-          className="w-full rounded-xl border border-gray-200 bg-gray-50/60 px-3.5 py-3 text-sm text-gray-900 placeholder:text-gray-400 transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-2xl border border-white/60 bg-white/60 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm backdrop-blur-sm transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/15 disabled:cursor-not-allowed disabled:opacity-60"
           placeholder="Brief summary of your concern"
         />
         <div className="mt-1.5 flex items-center justify-between text-xs">
           <span className="text-gray-500">Minimum 5 characters</span>
-          <span className="text-gray-400">{titleCount}/200</span>
+          <span
+            className={`font-medium ${
+              titleCount > 0 && titleCount < 5
+                ? 'text-amber-600'
+                : 'text-gray-400'
+            }`}
+          >
+            {titleCount}/200
+          </span>
         </div>
       </div>
 
@@ -201,9 +214,11 @@ export function SubmitComplaintForm() {
       <div>
         <label
           htmlFor="category"
-          className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700"
+          className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-800"
         >
-          <Tag className="h-3.5 w-3.5 text-gray-400" />
+          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
+            <Tag className="h-3 w-3 text-white" />
+          </span>
           Category
           <span className="font-normal text-gray-400">(optional)</span>
         </label>
@@ -212,7 +227,7 @@ export function SubmitComplaintForm() {
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           disabled={loading}
-          className="w-full rounded-xl border border-gray-200 bg-gray-50/60 px-3.5 py-3 text-sm text-gray-900 transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-2xl border border-white/60 bg-white/60 px-4 py-3 text-sm text-gray-900 shadow-sm backdrop-blur-sm transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/15 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <option value="">Select a category</option>
           {COMPLAINT_CATEGORIES.map((cat) => (
@@ -227,9 +242,11 @@ export function SubmitComplaintForm() {
       <div>
         <label
           htmlFor="description"
-          className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700"
+          className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-800"
         >
-          <FileText className="h-3.5 w-3.5 text-gray-400" />
+          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 shadow-sm">
+            <FileText className="h-3 w-3 text-white" />
+          </span>
           Description <span className="text-red-500">*</span>
         </label>
         <textarea
@@ -240,36 +257,52 @@ export function SubmitComplaintForm() {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           disabled={loading}
-          className="w-full resize-y rounded-xl border border-gray-200 bg-gray-50/60 px-3.5 py-3 text-sm text-gray-900 placeholder:text-gray-400 transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full resize-y rounded-2xl border border-white/60 bg-white/60 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm backdrop-blur-sm transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/15 disabled:cursor-not-allowed disabled:opacity-60"
           placeholder="Describe the situation in detail. Include dates, people involved, and any relevant information."
         />
         <div className="mt-1.5 flex items-center justify-between text-xs">
           <span className="text-gray-500">
             Minimum 20 characters. Be as detailed as possible.
           </span>
-          <span className="text-gray-400">{descriptionCount}/5000</span>
+          <span
+            className={`font-medium ${
+              descriptionCount > 0 && descriptionCount < 20
+                ? 'text-amber-600'
+                : 'text-gray-400'
+            }`}
+          >
+            {descriptionCount}/5000
+          </span>
         </div>
       </div>
 
       {/* Attach Evidence */}
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <label className="inline-flex items-center gap-2 text-sm font-medium text-gray-700">
-            <Paperclip className="h-4 w-4 text-gray-400" />
+          <label className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 shadow-sm">
+              <Paperclip className="h-3 w-3 text-white" />
+            </span>
             Attach Evidence
             <span className="font-normal text-gray-400">(optional)</span>
           </label>
-          <span className="text-xs text-gray-500">
+          <span
+            className={`rounded-full px-2.5 py-0.5 text-xs font-medium transition ${
+              files.length > 0
+                ? 'bg-blue-100 text-blue-700'
+                : 'bg-white/60 text-gray-500'
+            }`}
+          >
             {files.length} / {MAX_FILES} files
           </span>
         </div>
 
         <label
           htmlFor="evidence-files"
-          className={`block cursor-pointer rounded-2xl border-2 border-dashed p-6 text-center transition ${
+          className={`group block cursor-pointer rounded-2xl border-2 border-dashed p-6 text-center shadow-sm backdrop-blur-sm transition ${
             loading
-              ? 'cursor-not-allowed border-gray-200 bg-gray-50'
-              : 'border-blue-300 bg-blue-50/30 hover:border-blue-500 hover:bg-blue-50'
+              ? 'cursor-not-allowed border-gray-200 bg-gray-50/60'
+              : 'border-blue-300/60 bg-blue-50/40 hover:border-blue-500 hover:bg-blue-50/70'
           }`}
         >
           <input
@@ -281,8 +314,8 @@ export function SubmitComplaintForm() {
             accept={ALLOWED_EXTS.join(',')}
             className="hidden"
           />
-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30">
-            <Upload className="h-6 w-6 text-white" />
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30 transition group-hover:scale-110">
+            <CloudUpload className="h-7 w-7 text-white" />
           </div>
           <p className="text-sm font-semibold text-gray-800">
             Drag and drop files here
@@ -297,22 +330,25 @@ export function SubmitComplaintForm() {
             {files.map((sf) => (
               <li
                 key={sf.id}
-                className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-2.5 transition hover:border-blue-300"
+                className="flex items-center gap-3 rounded-xl border border-white/60 bg-white/60 p-3 shadow-sm backdrop-blur-sm transition hover:border-blue-300 hover:bg-white/80"
               >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                  <Paperclip className="h-4 w-4" />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600">
+                  <FileCheck className="h-4 w-4 text-white" />
                 </div>
-                <span className="flex-1 truncate text-sm font-medium text-gray-700">
-                  {sf.file.name}
-                </span>
-                <span className="shrink-0 text-xs text-gray-500">
-                  {formatSize(sf.file.size)}
-                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-gray-800">
+                    {sf.file.name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {formatSize(sf.file.size)}
+                  </p>
+                </div>
                 <button
                   type="button"
                   onClick={() => removeFile(sf.id)}
                   disabled={loading}
                   className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                  aria-label={`Remove ${sf.file.name}`}
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -322,16 +358,16 @@ export function SubmitComplaintForm() {
         )}
       </div>
 
-      {/* Anonymous toggle — card style */}
+      {/* Anonymous toggle */}
       <div
-        className={`rounded-2xl border p-4 transition ${
+        className={`rounded-2xl border p-4 shadow-sm backdrop-blur-sm transition ${
           isAnonymous
             ? 'border-blue-300 bg-blue-50/60'
-            : 'border-gray-200 bg-gray-50/60'
+            : 'border-white/60 bg-white/60'
         }`}
       >
         <label className="flex cursor-pointer items-start gap-3">
-          <span className="relative mt-0.5 inline-flex h-5 w-9 shrink-0 items-center">
+          <span className="relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center">
             <input
               type="checkbox"
               checked={isAnonymous}
@@ -340,13 +376,15 @@ export function SubmitComplaintForm() {
               className="peer sr-only"
             />
             <span
-              className={`absolute inset-0 rounded-full transition ${
-                isAnonymous ? 'bg-gradient-to-r from-blue-500 to-indigo-600' : 'bg-gray-300'
+              className={`absolute inset-0 rounded-full shadow-inner transition ${
+                isAnonymous
+                  ? 'bg-gradient-to-r from-blue-500 to-indigo-600'
+                  : 'bg-gray-300'
               }`}
             />
             <span
-              className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                isAnonymous ? 'translate-x-4' : 'translate-x-0'
+              className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-md transition-transform ${
+                isAnonymous ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
           </span>
@@ -355,8 +393,8 @@ export function SubmitComplaintForm() {
               <Shield className="h-4 w-4 text-blue-600" />
               Submit anonymously
             </span>
-            <span className="mt-0.5 block text-xs text-gray-600">
-              Your name and email will not be linked to this complaint. Your
+            <span className="mt-1 block text-xs text-gray-600">
+              Your name and email will not be linked to this concern. Your
               identity will not be visible to anyone in the system.
             </span>
           </div>
@@ -365,26 +403,26 @@ export function SubmitComplaintForm() {
 
       {/* Progress */}
       {progress && (
-        <div className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+        <div className="flex items-center gap-3 rounded-2xl border border-blue-200 bg-blue-50/80 px-4 py-3 text-sm text-blue-800 shadow-sm backdrop-blur-sm">
           <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
           <span>{progress}</span>
         </div>
       )}
 
       {/* Actions */}
-      <div className="flex items-center justify-end gap-3 border-t border-gray-200 pt-4">
+      <div className="flex items-center justify-end gap-3 border-t border-white/60 pt-5">
         <button
           type="button"
           onClick={() => router.back()}
           disabled={loading}
-          className="rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
+          className="rounded-2xl border border-white/60 bg-white/60 px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm backdrop-blur-sm transition hover:bg-white disabled:opacity-50"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-500/40 disabled:cursor-not-allowed disabled:opacity-70"
+          className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-500/40 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {loading ? (
             <>
@@ -394,7 +432,7 @@ export function SubmitComplaintForm() {
           ) : (
             <>
               <Check className="h-4 w-4" />
-              Submit Complaint
+              Submit Concern
             </>
           )}
         </button>

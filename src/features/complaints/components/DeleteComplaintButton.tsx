@@ -58,7 +58,7 @@ export function DeleteComplaintButton({
         className="inline-flex items-center gap-1.5 rounded-md border border-red-300 bg-white px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50"
       >
         <Trash2 className="h-3.5 w-3.5" />
-        Delete Complaint
+        Delete Concern
       </button>
     );
   }
@@ -72,7 +72,7 @@ export function DeleteComplaintButton({
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="text-base font-semibold text-gray-900">
-              Delete this complaint?
+              Delete this concern?
             </h3>
             <p className="mt-1 text-sm text-gray-600">
               This action <strong>cannot be undone</strong>. All attached

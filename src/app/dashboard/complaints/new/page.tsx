@@ -4,7 +4,7 @@ import { ArrowLeft, FileText } from 'lucide-react';
 import { SubmitComplaintForm } from '@/features/complaints/components/SubmitComplaintForm';
 
 export const metadata = {
-  title: 'Submit a complaint - Whistleblowing System',
+  title: 'Submit a concern - Whistleblowing System',
 };
 
 export default async function NewComplaintPage() {
@@ -29,7 +29,7 @@ export default async function NewComplaintPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-              Submit a Complaint
+              Submit a Concern
             </h1>
             <p className="mt-0.5 text-sm text-gray-600">
               Report a concern about unethical, illegal, or unsafe behavior.

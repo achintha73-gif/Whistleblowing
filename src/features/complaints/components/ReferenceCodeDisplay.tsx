@@ -49,7 +49,7 @@ export function ReferenceCodeDisplay({ code }: { code: string }) {
           <strong>Save this code now.</strong> We do not store your identity
           and cannot recover the code if you lose it. You will need it to:
           <ul className="mt-1 ml-4 list-disc space-y-0.5">
-            <li>Check your complaint status</li>
+            <li>Check your concern status</li>
             <li>Add more information</li>
             <li>Attach additional evidence</li>
           </ul>

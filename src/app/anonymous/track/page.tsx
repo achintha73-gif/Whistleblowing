@@ -82,7 +82,7 @@ function TrackForm() {
         className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition inline-flex items-center justify-center gap-2"
       >
         <Search className="h-4 w-4" />
-        {loading ? 'Searching...' : 'Track Complaint'}
+        {loading ? 'Searching...' : 'Track Concern'}
       </button>
     </form>
   );
@@ -117,7 +117,7 @@ export default function TrackComplaintPage() {
 
         <p className="mt-6 text-center text-xs text-gray-500">
           Lost your reference code? Unfortunately, we cannot recover it since
-          your complaint is anonymous.
+          your concern is anonymous.
         </p>
       </div>
     </div>

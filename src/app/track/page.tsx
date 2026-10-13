@@ -3,7 +3,7 @@ import { Shield, FileText, ArrowRight } from 'lucide-react';
 import { TrackCodeForm } from '@/features/complaints/components/TrackCodeForm';
 
 export const metadata = {
-  title: 'Track Complaint - Whistleblowing System',
+  title: 'Track Concern - Whistleblowing System',
 };
 
 export default function TrackPage() {
@@ -41,7 +41,7 @@ export default function TrackPage() {
               <FileText className="h-7 w-7 text-white" strokeWidth={2.5} />
             </div>
             <h1 className="mt-4 text-2xl font-bold tracking-tight text-gray-900">
-              Track your complaint
+              Track your concern
             </h1>
             <p className="mt-2 max-w-sm text-sm text-gray-600">
               Enter the reference code you received when you submitted your

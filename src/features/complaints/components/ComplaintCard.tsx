@@ -42,7 +42,7 @@ export function ComplaintCard({
           </div>
 
           <div className="mt-3 text-xs text-gray-400">
-            Complaint #{complaint.complaintId}
+            Concern #{complaint.complaintId}
           </div>
         </Link>
 

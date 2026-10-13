@@ -42,11 +42,11 @@ export default function ReportPage() {
             </div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-                Submit a complaint anonymously
+                Submit a concern anonymously
               </h1>
               <p className="mt-1 text-sm text-gray-600">
                 Your identity will not be recorded. You will receive a reference
-                code to track your complaint.
+                code to track your concern.
               </p>
             </div>
           </div>
@@ -64,7 +64,7 @@ export default function ReportPage() {
               href="/track"
               className="inline-flex items-center gap-1 font-medium text-blue-600 transition hover:text-blue-700"
             >
-              Track your complaint
+              Track your concern
               <ArrowRight className="h-3 w-3" />
             </Link>
           </div>

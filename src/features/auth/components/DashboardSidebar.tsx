@@ -38,8 +38,8 @@ const MENU_BY_ROLE: Record<RoleName, MenuSection[]> = {
     {
       items: [
         { href: '/dashboard/user', label: 'Dashboard', icon: Home, exact: true },
-        { href: '/dashboard/complaints/new', label: 'Submit Complaint', icon: PlusCircle },
-        { href: '/dashboard/complaints', label: 'My Complaints', icon: ListChecks, exact: true, badge: 'complaints' },
+        { href: '/dashboard/complaints/new', label: 'Submit Concern', icon: PlusCircle },
+        { href: '/dashboard/complaints', label: 'My Concerns', icon: ListChecks, exact: true, badge: 'complaints' },
         { href: '/dashboard/notifications', label: 'Notifications', icon: Bell, badge: 'notifications' },
       ],
     },
@@ -49,7 +49,7 @@ const MENU_BY_ROLE: Record<RoleName, MenuSection[]> = {
       title: 'Main',
       items: [
         { href: '/dashboard/manager', label: 'Dashboard', icon: Home, exact: true },
-        { href: '/dashboard/complaints', label: 'Complaints', icon: ListChecks, badge: 'complaints' },
+        { href: '/dashboard/complaints', label: 'Concerns', icon: ListChecks, badge: 'complaints' },
         { href: '/dashboard/cases', label: 'Cases', icon: FolderOpen, badge: 'cases' },
         { href: '/dashboard/notifications', label: 'Notifications', icon: Bell, badge: 'notifications' },
       ],

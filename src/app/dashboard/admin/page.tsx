@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import {
   Users,
@@ -23,6 +24,16 @@ import {
 export default async function AdminDashboardPage() {
   const user = await getSession();
   if (!user) return null;
+
+  // Role guard — only ADMIN can access this dashboard
+  if (user.roleName !== 'ADMIN') {
+    const ROLE_DASHBOARDS: Record<string, string> = {
+      MANAGER: '/dashboard/manager',
+      INVESTIGATOR: '/dashboard/investigator',
+      USER: '/dashboard/user',
+    };
+    redirect(ROLE_DASHBOARDS[user.roleName] ?? '/dashboard/user');
+  }
 
   const stats = await getAdminStats();
   const greeting = getGreeting();
@@ -136,8 +147,9 @@ export default async function AdminDashboardPage() {
                     <li key={u.userId}>
                       <Link
                         href="/dashboard/users"
-                        className="group flex items-start gap-3 rounded-xl border border-gray-100 p-3 hover:border-blue-300 hover:bg-blue-50/30 transition"
+                        className="group relative flex items-start gap-3 overflow-hidden rounded-2xl border border-white/60 bg-gradient-to-br from-white/80 to-white/40 p-3 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-300 hover:from-white hover:to-blue-50/60 hover:shadow-xl hover:shadow-blue-500/10"
                       >
+                        <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-700 font-semibold text-sm group-hover:bg-blue-200">
                           {u.name.charAt(0).toUpperCase()}
                         </div>

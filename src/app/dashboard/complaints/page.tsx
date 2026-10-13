@@ -24,7 +24,7 @@ export default async function ComplaintsListPage() {
     ? await getAllComplaintsForStaff(user)
     : await getMyComplaints(user);
 
-  const pageTitle = isStaff ? 'All Complaints' : 'My Complaints';
+  const pageTitle = isStaff ? 'All Concerns' : 'My Concerns';
   const pageDescription = isStaff
     ? 'All complaints submitted in the system.'
     : 'Complaints you have submitted. Anonymous complaints are not shown here to protect your identity.';
@@ -77,7 +77,7 @@ export default async function ComplaintsListPage() {
               className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-blue-500/30 transition hover:from-blue-700 hover:to-indigo-700"
             >
               <Plus className="h-4 w-4" />
-              Submit your complaint
+              Submit your concern
             </Link>
           )}
         </div>

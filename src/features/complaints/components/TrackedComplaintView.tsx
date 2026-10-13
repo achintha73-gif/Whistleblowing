@@ -284,7 +284,7 @@ export function TrackedComplaintView({ complaint }: { complaint: Complaint }) {
               No additional information yet
             </p>
             <p className="mt-1 text-xs text-gray-500">
-              Click Add Info above to submit more details about your complaint.
+              Click Add Info above to submit more details about your concern.
             </p>
           </div>
         ) : (

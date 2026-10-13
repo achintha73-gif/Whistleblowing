@@ -48,12 +48,12 @@ const CONTACTS = [
 
 const FAQS = [
   {
-    q: 'How do I submit a complaint?',
-    a: 'Go to your dashboard and click "Submit New Complaint". You can attach evidence and choose to submit anonymously if you prefer.',
+    q: 'How do I submit a concern?',
+    a: 'Go to your dashboard and click "Submit New Concern". You can attach evidence and choose to submit anonymously if you prefer.',
   },
   {
     q: 'Can I submit anonymously?',
-    a: 'Yes. Use the Anonymous login tab on the login page, or check "Submit anonymously" when filing a complaint. Your identity will be completely hidden.',
+    a: 'Yes. Use the Anonymous login tab on the login page, or check "Submit anonymously" when filing a concern. Your identity will be completely hidden.',
   },
   {
     q: 'How do I track an anonymous complaint?',
@@ -65,7 +65,7 @@ const FAQS = [
   },
   {
     q: 'What happens after I submit?',
-    a: 'A manager reviews the complaint. If approved, it becomes a case and is assigned to an investigator. You will receive notifications about status changes.',
+    a: 'A manager reviews the concern. If approved, it becomes a case and is assigned to an investigator. You will receive notifications about status changes.',
   },
   {
     q: 'What evidence can I attach?',
@@ -197,7 +197,7 @@ export default async function SupportPage() {
                 Prefer to stay anonymous?
               </h3>
               <p className="mt-1 text-sm text-white/85 max-w-md">
-                Submit a complaint without logging in. You&apos;ll receive a
+                Submit a concern without logging in. You&apos;ll receive a
                 reference code to track progress.
               </p>
             </div>
@@ -217,7 +217,7 @@ export default async function SupportPage() {
               className="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/20"
             >
               <MessageCircle className="h-4 w-4" />
-              Track Complaint
+              Track Concern
             </Link>
           </div>
         </div>

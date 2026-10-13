@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import {
   FileText,
@@ -20,6 +21,16 @@ import { ComplaintCard } from '@/features/complaints/components/ComplaintCard';
 export default async function ManagerDashboardPage() {
   const user = await getSession();
   if (!user) return null;
+
+  // Role guard — only MANAGER can access this dashboard
+  if (user.roleName !== 'MANAGER') {
+    const ROLE_DASHBOARDS: Record<string, string> = {
+      ADMIN: '/dashboard/admin',
+      INVESTIGATOR: '/dashboard/investigator',
+      USER: '/dashboard/user',
+    };
+    redirect(ROLE_DASHBOARDS[user.roleName] ?? '/dashboard/user');
+  }
 
   const data = await getManagerDashboardData();
   const greeting = getGreeting();
@@ -51,14 +62,14 @@ export default async function ManagerDashboardPage() {
           className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-blue-500/30 transition hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-500/40 shrink-0"
         >
           <Plus className="h-4 w-4" />
-          Review Complaints
+          Review Concerns
         </Link>
       </div>
 
       {/* Eduka-style stat cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <EdukaStatCard
-          label="Total Complaints"
+          label="Total Concerns"
           value={data.totalComplaints}
           accent="green"
           icon={<FileText className="h-5 w-5" />}
@@ -104,7 +115,7 @@ export default async function ManagerDashboardPage() {
                     Pending Review
                   </h2>
                   <p className="mt-0.5 text-xs text-gray-500">
-                    Complaints awaiting your decision
+                    Concerns awaiting your decision
                   </p>
                 </div>
                 {data.pendingCount > 0 && (
@@ -130,7 +141,7 @@ export default async function ManagerDashboardPage() {
                     You&apos;re all caught up!
                   </p>
                   <p className="mt-1 text-xs text-gray-500">
-                    No pending complaints at the moment.
+                    No pending concerns at the moment.
                   </p>
                 </div>
               ) : (
@@ -162,8 +173,8 @@ export default async function ManagerDashboardPage() {
             <div className="p-3 space-y-2">
               <QuickAction
                 href="/dashboard/complaints"
-                title="Review Complaints"
-                description="Convert pending complaints to cases"
+                title="Review Concerns"
+                description="Convert pending concerns to cases"
                 icon={<FileText className="h-4 w-4" />}
                 accent="bg-blue-50 text-blue-600"
               />
@@ -232,17 +243,20 @@ function QuickAction({
   return (
     <Link
       href={href}
-      className="group flex items-start gap-3 rounded-xl p-3 transition hover:bg-white/60"
+      className="group relative flex items-start gap-3 overflow-hidden rounded-2xl border border-white/60 bg-gradient-to-br from-white/80 to-white/40 p-3.5 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-300 hover:from-white hover:to-blue-50/60 hover:shadow-lg hover:shadow-blue-500/10"
     >
+      <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
       <div
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${accent}`}
+        className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${accent} shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:rotate-3`}
       >
         {icon}
       </div>
-      <div className="min-w-0 flex-1">
+      <div className="relative min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
-          <h3 className="text-sm font-medium text-gray-900">{title}</h3>
-          <ArrowRight className="h-3 w-3 text-gray-400 transition group-hover:translate-x-0.5 group-hover:text-gray-600" />
+          <h3 className="text-sm font-bold text-gray-900 transition group-hover:text-blue-700">
+            {title}
+          </h3>
+          <ArrowRight className="h-3.5 w-3.5 text-gray-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-blue-600" />
         </div>
         <p className="mt-0.5 text-xs text-gray-500">{description}</p>
       </div>

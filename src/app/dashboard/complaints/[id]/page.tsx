@@ -93,7 +93,7 @@ export default async function ComplaintDetailPage({
                 </span>
               )}
               <span className="text-xs text-gray-500">
-                Complaint #{complaint.complaintId}
+                Concern #{complaint.complaintId}
               </span>
             </div>
           </div>
@@ -152,7 +152,7 @@ export default async function ComplaintDetailPage({
         {evidence.length === 0 ? (
           <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-white/50 p-6 text-center">
             <p className="text-sm text-gray-500">
-              No evidence attached to this complaint.
+              No evidence attached to this concern.
             </p>
           </div>
         ) : (

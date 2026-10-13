@@ -1,7 +1,5 @@
-// -------------------------------------------------------------
 // Auth Configuration
 // Centralized JWT + cookie settings
-// -------------------------------------------------------------
 
 export const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -16,9 +14,7 @@ export const AUTH_COOKIE_NAME = 'wb_session';
 // Session duration: 7 days
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 
-// -------------------------------------------------------------
 // Email / SMTP
-// -------------------------------------------------------------
 
 export const SMTP_HOST = process.env.SMTP_HOST;
 export const SMTP_PORT = Number(process.env.SMTP_PORT ?? 587);
@@ -33,9 +29,7 @@ if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
   );
 }
 
-// -------------------------------------------------------------
 // Password Reset
-// -------------------------------------------------------------
 
 export const PASSWORD_RESET_EXPIRY_SECONDS = Number(
   process.env.PASSWORD_RESET_EXPIRY_SECONDS ?? 3600

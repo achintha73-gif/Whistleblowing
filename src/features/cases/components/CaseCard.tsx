@@ -40,7 +40,7 @@ export function CaseCard({ caseItem }: { caseItem: CaseSummary }) {
           </div>
 
           <div className="mt-3 text-xs text-gray-400">
-            Case #{caseItem.caseId} · Complaint #{caseItem.complaintId}
+            Case #{caseItem.caseId} · Concern #{caseItem.complaintId}
           </div>
         </div>
       </div>
