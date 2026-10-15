@@ -625,7 +625,3 @@ This project is a university coursework submission. Not licensed for commercial 
 ## 👤 Author
 
 Achintha - https://github.com/achintha73-gif
-
----
-
-> Warning: This is a university project built for learning purposes. In production, additional security measures (HTTPS, rate limiting, cloud file storage, 2FA, etc.) would be required.
